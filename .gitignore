@@ -26,3 +26,5 @@ maven/gexbot/target/*
 maven/gexbot/target/classes/sentences.txt
 maven/gexbot/target/classes/celebrities.txt
 maven/gexbot/src/main/java/sentences.txt
+maven/gexbot/target/classes/sentences.txt
+maven/gexbot/target/classes/sentences.txt
