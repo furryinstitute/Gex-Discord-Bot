@@ -5,20 +5,33 @@ import org.javacord.api.interaction.SlashCommand;
 
 public class GexBot {
 
-    final static String PATH = "N:\\Projects\\Coding\\gexbot\\maven\\gexbot\\src\\main\\java\\";
-    final static String AI_MODEL_PATH = "A:\\GPT\\MODEL\\ggml-model-gpt4all-falcon-q4_0.bin";
-    //final static String path = "C:\\Users\\Bread\\Documents\\GitHub Projects\\gexbot\\maven\\gexbot\\src\\main\\java\\";
-    final  static String TOKEN = "MTE1NDI0NTM2OTQ4ODc1Njc3OA.G2DCi5.bzvLesLy3_HIdC_aGnJ0HODd6XUvqthOYFaLOk";
-    final  static String USERID = "1154245369488756778";
+    final static String PATH =          System.getProperty("user.dir");
+    final static String ALT_PATH =      System.getProperty("user.dir")+"\\maven\\gexbot\\src\\main\\java\\";
+    final static String AI_MODEL_PATH = "N:\\AI MODELS\\ggml-model-gpt4all-falcon-q4_0.bin";
 
-    static String nameFile = PATH+"names.txt";
-    static String sentenceFile = PATH+"sentences.txt";
-    static String mentionFile = PATH+"mentions.txt";
+    static String TOKEN =  TextReader.readLine(PATH+"\\txt\\TOKEN.txt");
+    static String USERID = TextReader.readLine(PATH+"\\txt\\USERID.txt");
+    static String NAME_FILE =                       "\\txt\\names.txt";
+    static String SENTENCE_FILE =                   "\\txt\\sentences.txt";
+    static String MENTION_FILE =                    "\\txt\\mentions.txt";
 
     public static ArrayList<String> nameStrings = new ArrayList<String>();
     public static ArrayList<String> sentenceStrings = new ArrayList<String>();
 
     public static void main(String[] args) {
+
+        if (TOKEN.equals("")) {
+            TOKEN =  TextReader.readLine(ALT_PATH+"\\txt\\TOKEN.txt");
+            USERID = TextReader.readLine(ALT_PATH+"\\txt\\USERID.txt");
+
+            TextReader.readLines(ALT_PATH+NAME_FILE, nameStrings);
+            TextReader.readLines(ALT_PATH+SENTENCE_FILE, sentenceStrings);
+            TextReader.readLines(ALT_PATH+MENTION_FILE, MessageListener.mentionStrings);
+        } else {
+            TextReader.readLines(PATH+NAME_FILE, nameStrings);
+            TextReader.readLines(PATH+SENTENCE_FILE, sentenceStrings);
+            TextReader.readLines(PATH+MENTION_FILE, MessageListener.mentionStrings);
+        }
 
         DiscordApi api = new DiscordApiBuilder()
             .setToken(TOKEN)
@@ -27,14 +40,11 @@ public class GexBot {
 
         System.out.println("========================================");
         System.out.println("| GexBot For Discord                   |");
-        System.out.println("| v0.2.0                               |");
+        System.out.println("| v0.2.1                               |");
         System.out.println("| Developed by BurntBread007           |");
         System.out.println("========================================");
         System.out.println("\nYou can invite the bot by using the following url: " + api.createBotInvite());
 
-        TextReader.readLines(nameFile, nameStrings);
-        TextReader.readLines(sentenceFile, sentenceStrings);
-        TextReader.readLines(mentionFile, MessageListener.mentionStrings);
         api.updateActivity("Gex: Enter the Gecko (PS1, 1998)");
 
         SlashCommand command1 = SlashCommand.with("gex", "Say Gex! Hear one of my newest & trendiest jokes!")

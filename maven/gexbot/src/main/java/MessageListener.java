@@ -27,7 +27,7 @@ public class MessageListener implements MessageCreateListener {
                 event.getChannel().sendMessage( "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. Rats make me crazy.");
             }
         } else {
-            
+
             // Command List for those that start with "!"
             switch (command) {
                 case "!TIME" :
@@ -37,8 +37,8 @@ public class MessageListener implements MessageCreateListener {
                     event.getChannel().sendMessage(TextReader.generatePhrase());
                     break;
                 case "!ASK" :
-                    System.out.println("!ASK INIT");
                     event.getChannel().sendMessage( "Please wait a moment as I answer your statement: \""+event.getMessageContent().substring(5)+"\"");
+                    event.getChannel().type();
                     event.getChannel().sendMessage( GexGPT.generateAIReply(words));
                     break;
             }

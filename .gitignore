@@ -10,6 +10,11 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+# Maven
+*.marker
+*.lst
+*.properties
+
 # Package Files #
 *.jar
 *.war
@@ -22,9 +27,10 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
-maven/gexbot/target/*
-maven/gexbot/target/classes/sentences.txt
-maven/gexbot/target/classes/celebrities.txt
-maven/gexbot/src/main/java/sentences.txt
-maven/gexbot/target/classes/sentences.txt
-maven/gexbot/target/classes/sentences.txt
+maven/gexbot/target/classes/txt/*.txt
+maven/gexbot/target/txt/*.txt
+maven/gexbot/target/classes/*.class
+maven/gexbot/src/main/java/txt/TOKEN.txt
+maven/gexbot/src/main/java/txt/USERID.txt
+maven/gexbot/dependency-reduced-pom.xml
+maven/gexbot/target/classes/META-INF/MANIFEST.MF
