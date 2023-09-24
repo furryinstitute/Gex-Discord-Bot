@@ -6,7 +6,7 @@ import org.javacord.api.interaction.SlashCommand;
 public class GexBot {
 
     final static String PATH =          System.getProperty("user.dir");
-    final static String ALT_PATH =      System.getProperty("user.dir")+"\\maven\\gexbot\\src\\main\\java\\";
+    final static String ALT_PATH =      System.getProperty("user.dir")+"\\maven\\gexbot\\src\\main\\java";
     final static String AI_MODEL_PATH = "N:\\AI MODELS\\ggml-model-gpt4all-falcon-q4_0.bin";
 
     static String TOKEN =  TextReader.readLine(PATH+"\\txt\\TOKEN.txt");
