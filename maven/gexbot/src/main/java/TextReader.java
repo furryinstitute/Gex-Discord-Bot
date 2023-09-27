@@ -27,35 +27,24 @@ public class TextReader {
         return line;
     }
 
-    /*public static void readJarLines(String file,  ArrayList<String> fileArr) {
-        try {
-            InputStreamReader textStream = new InputStreamReader(TextReader.class.getClassLoader().getResourceAsStream(file));
-            BufferedReader br = new BufferedReader(textStream);
-            String line;
-            while( (line = br.readLine()) != null) {
-                fileArr.add(line);
-            }
-            br.close();
-        } catch (Exception e) { System.out.println("ERROR! Could not read file "+file); }
-    }*/
-
     public static String generatePhrase() {
         String sentence, name, result;
         int splice;
+        double random;
 
-        double random = Math.random() * GexBot.sentenceStrings.size();
-        sentence = GexBot.sentenceStrings.get((int)random);
+        random = Math.random() * GexBot.sentenceFileArr.size();
+        sentence = GexBot.sentenceFileArr.get((int)random);
         splice = sentence.indexOf("_");
 
-        random = Math.random() * GexBot.nameStrings.size();
-        name = GexBot.nameStrings.get((int)random);
+        random = Math.random() * GexBot.nameFileArr.size();
+        name = GexBot.nameFileArr.get((int)random);
 
         result = sentence.substring(0, splice) + name + sentence.substring(splice+1);
         return result;
     }
 
     public static String generateReply() {
-        double random = Math.random() * MessageListener.mentionStrings.size();
-        return (MessageListener.mentionStrings.get((int)random));
+        double random = Math.random() * GexBot.mentionFileArr.size();
+        return (GexBot.mentionFileArr.get((int)random));
     }
 }

@@ -17,7 +17,11 @@ public class SlashListener implements SlashCommandCreateListener {
                 .thenAccept(interactionOriginalResponseUpdater -> {
                     interactionOriginalResponseUpdater.setContent(GexGPT.generateAIReply(words)).update();
                 });
-                break;*/
-        }
+                break;
+            case "scrapbook":
+                // Sends a picture of Gex from some collection.
+            case "call":
+                // Join's user's voice call if they are in a voice channel.
+        */}
     }
 }

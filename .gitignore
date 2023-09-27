@@ -34,3 +34,4 @@ maven/gexbot/src/main/java/txt/TOKEN.txt
 maven/gexbot/src/main/java/txt/USERID.txt
 maven/gexbot/dependency-reduced-pom.xml
 maven/gexbot/target/classes/META-INF/MANIFEST.MF
+maven/gexbot/target/ai/ggml-model-gpt4all-falcon-q4_0.bin
