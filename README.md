@@ -1,5 +1,5 @@
 # GexBot
-#### It's tail time! Gex the Discord bot joins a conversation when it heats up, blurting the trendiest references! You can also talk to him and get his help in all sorts of ways with AI.
+ *It's tail time! Gex the Discord bot joins a conversation when it heats up, blurting out the trendiest references! You can also talk to him and receive his help in all sorts of ways with AI.*
 
 ## About The Project
 PLACEHOLDER
@@ -23,6 +23,9 @@ PLACEHOLDER
 **2.** Download the [Maven project manager](https://maven.apache.org/download.cgi) (I used Maven 3.8.8) and set its relevant environment variables like `PLACEHOLDER`.
 > Note: Only Maven 3.8.8 was used, other or newer versions may work but this is untested.
 
+**2a.** Also follow Step 3 from the above Release guide and install an AI model from GPT4All's model explorer found on their [site](https://gpt4all.io/index.html). Store this in a location and save that location's path for later.
+> Note: As of v0.2.3, there is a constant string in `GexBot.java` where you will type this location before compiling.
+
 **3.** Once you're set up, we can move on to the project's file structure.
   * The meat of the project files are in the `.\maven\gexbot\` folder. From here, we have `src` which includes the .JAVA files for editing, and `target` where the .CLASS, .JAR, and other compiled files are stored.
   * .JAVA files are in `\src\main\java\`, and its manifest file in `\src\main\resources\`.
@@ -33,3 +36,9 @@ PLACEHOLDER
 
 **4.** When the time comes for compilation, there is a provided `MavenCompile.bat` that uses Maven to compile and package the program into several .JARs. 
   * Alternatively to the bash file, just run `mvn compile`, then `mvn package`, change directory to the target folder, and then finally run the desired jar (mentioned before, shaded is recommended) and run `java -jar FILENAME-shaded.jar`.
+
+## Citation
+ This project relies on a few key repositories to culminate their features into GexBot. Notable repositories include:
+  * **[GPT4All:](https://github.com/nomic-ai/gpt4all)** Training an Assistant-style Chatbot with Large Scale Data Distillation from GPT-3.5-Turbo. Authored by: Yuvanesh Anand and Zach Nussbaum and Brandon Duderstadt and Benjamin Schmidt and Andriy Mulyar.
+  * **[Javacord:](https://github.com/Javacord/Javacord)** An easy to use multithreaded library for creating Discord bots in Java.
+  * **[JNR-FFI:](https://github.com/jnr/jnr-ffi)** Java Abstracted Foreign Function Layer; a Java library for loading native libraries without writing JNI code by hand.
