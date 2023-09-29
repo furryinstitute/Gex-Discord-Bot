@@ -9,11 +9,14 @@ public class TextReader {
             BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
             String line;
-            while( (line = br.readLine()) != null) {
-                fileArr.add(line);
+            while((line = br.readLine()) != null) {
+                if( (!line.startsWith("#")) && (!line.isEmpty()) ) {
+                    fileArr.add(line);
+                }
             }
             br.close();
-        } catch (Exception e) { System.out.println("ERROR! Could not read file "+file); }
+            System.out.println("File \""+file+"\" successfully read.");
+        } catch (Exception e) { System.out.println("ERROR! Could not read file \""+file+"\""); }
     }
 
     public static String readLine(String file) {
@@ -23,8 +26,13 @@ public class TextReader {
             BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
             line = br.readLine();
             br.close();
-        } catch (Exception e) { System.out.println("ERROR! Could not read file "+file); }
+            System.out.println("File \""+file+"\" successfully read.");
+        } catch (Exception e) { System.out.println("ERROR! Could not read file \""+file+"\""); }
         return line;
+    }
+
+    public static void writeLines(ArrayList<String> fileArr) {
+        ;
     }
 
     public static String generatePhrase() {

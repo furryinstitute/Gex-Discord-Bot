@@ -9,20 +9,12 @@ public class GexGPT {
         model = new LLModel(Paths.get(GexBot.AI_MODEL_PATH+GexBot.AI_MODEL));
         config = LLModel.config()
                 .withNPredict(512)
-                .withTemp((float)2)
+                .withTemp((float)GexBot.AI_TEMP)
                 .build();
-        if(Runtime.getRuntime().availableProcessors()-GexBot.THREAD_OFFSET >= 1) {
-            model.setThreadCount(Runtime.getRuntime().availableProcessors()-GexBot.THREAD_OFFSET);
-        } else {
-            System.out.println("ERROR! Thread offset is higher than available processors. Defaulting to use all available threads.");
-            model.setThreadCount(Runtime.getRuntime().availableProcessors());
-        }
     }
 
     public static String generateReply(String prompt) {
         try {
-           /*model.chatCompletion( List.of(Map.of("role", "system", "content", role),
-                            Map.of("role", "user", "content", prompt)), config, true, true);*/
             return model.generate( (GexBot.AI_ROLE+"\n "+prompt+"\n"), config, true);
         } catch (Exception e) {
             e.printStackTrace();

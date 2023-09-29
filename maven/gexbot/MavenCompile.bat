@@ -3,4 +3,4 @@ CALL mvn package
 mkdir ".\target\txt\"
 copy ".\src\main\java\txt\*.txt" ".\target\txt\"
 cd .\target\
-java -jar gexbot-0.2.3-shaded.jar
+java -jar gexbot-0.3.0-shaded.jar
