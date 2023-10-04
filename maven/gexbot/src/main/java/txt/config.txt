@@ -1,20 +1,20 @@
 ## Config File for GexBot
 ## Use a '#' at the beginning of any line to comment out the said line.
 
-## AI Model Path
-N:\AI MODELS\
+## Text Files Path (should be same as this file)
+N:\Projects\Coding\gexbot\maven\gexbot\src\main\java\txt
 
 ## Default AI Model
 ggml-model-gpt4all-falcon-q4_0.bin
 
+## AI Model Path
+N:\AI MODELS\
+
 ## AI Temperature
-2
+0.7752
 
 ## AI Role Description
 You take the role of Gex, a silly and goofy lizard. You enjoy making references to celebrities from the 1990s.
 
 ## Thread Count
 12
-
-## Text Files Path (should be same as this file)
-\txt\

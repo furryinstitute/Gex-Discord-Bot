@@ -7,20 +7,17 @@ public class MessageListener implements MessageCreateListener {
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
-        String phrase = event.getMessageContent();
-        String command = phrase.toUpperCase();
-        String words = command;
+        String message = event.getMessageContent();
+        String command;
+        if(message.indexOf(" ") == -1) { command = message.toUpperCase(); }
+        else { command = message.toUpperCase().substring(0, message.indexOf(" ")); }
         String ping = "<@"+(GexBot.USERID)+">";
         msgEvent = event;
-        if(command.indexOf(" ") != -1) {
-            words = phrase.substring(command.indexOf(" "));
-            command = command.substring(0, command.indexOf(" "));
-        }
 
         if( !(event.getMessageAuthor()).toString().contains(GexBot.USERID) && !(event.getMessageContent().startsWith("!"))) {
             if(event.getMessageContent().startsWith(ping)) {
                 event.getChannel().type();
-                event.getChannel().sendMessage("<@" + (event.getMessageAuthor().getIdAsString())+"> "+GexGPT.generateReply(words));
+                event.getChannel().sendMessage("<@" + (event.getMessageAuthor().getIdAsString())+"> "+GexGPT.generateReply(message.substring(message.indexOf(">")+1)));
             } else if(scanMessage("TIME")) {
                 event.getChannel().sendMessage("*It's tail time!*");
                 event.addReactionToMessage("GexSmirk:1154237747544997930");
