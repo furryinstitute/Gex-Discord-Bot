@@ -31,10 +31,6 @@ public class TextReader {
         return line;
     }
 
-    public static void writeLines(ArrayList<String> fileArr) {
-        ;
-    }
-
     public static String generatePhrase() {
         String sentence, name, result;
         int splice;

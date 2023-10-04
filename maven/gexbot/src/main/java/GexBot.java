@@ -14,6 +14,8 @@ public class GexBot {
     final static String SENTENCE_FILE = "sentences.txt";
     final static String MENTION_FILE =  "mentions.txt";
     final static String CONFIG_FILE =   "config.txt";
+    final static int    CHAT_TIME_THRESHOLD = 10000;
+    final static int    CHAT_COUNT_THRESHOLD = 8;
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
     public static ArrayList<String> nameFileArr =       new ArrayList<String>();
@@ -42,7 +44,7 @@ public class GexBot {
         // Print successful connection to Discord.
         System.out.println("\n================================");
         System.out.println(  "|      GexBot For Discord      |");
-        System.out.println(  "|     v0.3.2 - Pre-Release     |");
+        System.out.println(  "|     v0.3.3 - Pre-Release     |");
         System.out.println(  "|  Developed by BurntBread007  |");
         System.out.println(  "================================");
         System.out.println("\nSUCCESSFULLY CONNECTED!\nYou can invite the bot by using the following URL: " + api.createBotInvite());
@@ -77,6 +79,7 @@ public class GexBot {
             configFileArr.add(setModel());
             configFileArr.add(setModelPath());
             configFileArr.add(""+setTemp());
+            configFileArr.add(""+setTokenCount());
             configFileArr.add(setRole());
             configFileArr.add(""+setThreadCount());
         }
@@ -85,8 +88,9 @@ public class GexBot {
         AI_MODEL = configFileArr.get(1);
         AI_MODEL_PATH = configFileArr.get(2);
         AI_TEMP = Double.parseDouble(configFileArr.get(3));
-        AI_ROLE = configFileArr.get(4);
-        THREAD_COUNT = Integer.parseInt(configFileArr.get(5));
+        AI_TOKEN_COUNT = Integer.parseInt(configFileArr.get(4));
+        AI_ROLE = configFileArr.get(5);
+        THREAD_COUNT = Integer.parseInt(configFileArr.get(6));
     }
 
     static void readFiles() {
@@ -99,36 +103,18 @@ public class GexBot {
     }
 
     // All following setAbc() methods are used in configureSettings() to retrieve each option individually.
-    static String setModel() {
-        System.out.println("Enter an AI chat model to use. Options include:\n - Falcon\n - Wizard\n - LLama\n - Uncensored");
-        switch(inp.nextLine().toLowerCase()) {
-            case "falcon" :
-                return "ggml-model-gpt4all-falcon-q4_0.bin";
-            case "wizard" :
-                return "wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin";
-            case "llama" :
-                return "llama-2-7b-chat.ggmlv3.q4_0.bin";
-            case "uncensored" :
-                return "wizardLM-13B-Uncensored.ggmlv3.q4_0.bin";
-            default :
-                System.out.println("ERROR! Unknown AI chat model received. Please try again.\n");
-                return setModel();
-        }
-    }
-    static int setThreadCount() {
+    static String setTextPath() {
         try {
-            System.out.println("\nEnter a number of threads for this program to use for processing the AI chat model.\nThreads Available: "+Runtime.getRuntime().availableProcessors());
-            int input = Integer.parseInt(inp.next());
-
-            if(input <= 0 || input > Runtime.getRuntime().availableProcessors()) {
-                System.out.println("ERROR! Invalid thread count given.\n");
-                return setThreadCount();
-            } else {
-                return input;
-            }
+            System.out.println("\nEnter the folder path to your text files. Ensure you have all of the following files in the path you enter:");
+            System.out.println(" - TOKEN.txt\n - USERID.txt\n - config.txt (optional)\n - names.txt\n - sentences.txt\n - mentions.txt");
+            String input = inp.nextLine();
+            if(!input.endsWith("\\")) { input += "\\"; }
+            FileInputStream pathExistCheck = new FileInputStream(input+TOKEN_FILE);
+            pathExistCheck.close();
+            return input;
         } catch (Exception e) {
-            System.out.println("ERROR! Invalid thread count given.\n");
-            return setThreadCount();
+            System.out.println("ERROR! Could not detect required files in this path.\n");
+            return setTextPath();
         }
     }
     static String setModelPath() {
@@ -146,18 +132,20 @@ public class GexBot {
             return setModelPath();
         }
     }
-    static String setTextPath() {
-        try {
-            System.out.println("\nEnter the folder path to your text files. Ensure you have all of the following files in the path you enter:");
-            System.out.println(" - TOKEN.txt\n - USERID.txt\n - config.txt (optional)\n - names.txt\n - sentences.txt\n - mentions.txt");
-            String input = inp.nextLine();
-            if(!input.endsWith("\\")) { input += "\\"; }
-            FileInputStream pathExistCheck = new FileInputStream(input+TOKEN_FILE);
-            pathExistCheck.close();
-            return input;
-        } catch (Exception e) {
-            System.out.println("ERROR! Could not detect required files in this path.\n");
-            return setTextPath();
+    static String setModel() {
+        System.out.println("Enter an AI chat model to use. Options include:\n - Falcon\n - Wizard\n - LLama\n - Uncensored");
+        switch(inp.nextLine().toLowerCase()) {
+            case "falcon" :
+                return "ggml-model-gpt4all-falcon-q4_0.bin";
+            case "wizard" :
+                return "wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin";
+            case "llama" :
+                return "llama-2-7b-chat.ggmlv3.q4_0.bin";
+            case "uncensored" :
+                return "wizardLM-13B-Uncensored.ggmlv3.q4_0.bin";
+            default :
+                System.out.println("ERROR! Unknown AI chat model received. Please try again.\n");
+                return setModel();
         }
     }
     static double setTemp() {
@@ -168,12 +156,23 @@ public class GexBot {
             if(input <= 0 || input > 2) {
                 System.out.println("ERROR! Invalid temp given.\n");
                 return setTemp();
-            } else {
-                return input;
-            }
+            } else { return input; }
         } catch (Exception e) {
             System.out.println("ERROR! Invalid temp given.\n");
             return setTemp();
+        }
+    }
+    static int setTokenCount() {
+        try {
+            System.out.println("Enter the max number of tokens the AI should process for its responses. (Maximum max is 4096 tokens.)");
+            int input = Integer.parseInt(inp.next());
+            if(input <= 0 || input > 4096) {
+                System.out.println("ERROR! Invalid token count given.\n");
+                return setTokenCount();
+            } else { return input; }
+        } catch (Exception e) {
+            System.out.println("ERROR! Invalid token count given.\n");
+            return setTokenCount();
         }
     }
     static String setRole() {
@@ -184,5 +183,19 @@ public class GexBot {
             System.out.println("ERROR! Invalid role length. Try again.\n");
             return setRole();
         } else { return input; }
+    }
+    static int setThreadCount() {
+        try {
+            System.out.println("\nEnter a number of threads for this program to use for processing the AI chat model.\nThreads Available: "+Runtime.getRuntime().availableProcessors());
+            int input = Integer.parseInt(inp.next());
+
+            if(input <= 0 || input > Runtime.getRuntime().availableProcessors()) {
+                System.out.println("ERROR! Invalid thread count given.\n");
+                return setThreadCount();
+            } else { return input; }
+        } catch (Exception e) {
+            System.out.println("ERROR! Invalid thread count given.\n");
+            return setThreadCount();
+        }
     }
 }

@@ -4,6 +4,9 @@ import org.javacord.api.event.message.MessageCreateEvent;
 public class MessageListener implements MessageCreateListener {
 
     MessageCreateEvent msgEvent;
+    long currentTimeMsg, lastTimeMsg = 0;
+    int chatCount = 0;
+    int chatCountThreshold = GexBot.CHAT_COUNT_THRESHOLD;
 
     @Override
     public void onMessageCreate(MessageCreateEvent event) {
@@ -21,13 +24,28 @@ public class MessageListener implements MessageCreateListener {
             } else if(scanMessage("TIME")) {
                 event.getChannel().sendMessage("*It's tail time!*");
                 event.addReactionToMessage("GexSmirk:1154237747544997930");
-            } else if(scanMessage("GEX")) {
+            } else if(scanMessage("GEX") || scanMessage(ping)) {
                 event.getChannel().sendMessage( "<@" + (event.getMessageAuthor().getIdAsString())+"> " + TextReader.generateReply());
             } else if(scanMessage("CRAZY")) {
                 event.getChannel().sendMessage( "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. Rats make me crazy.");
             } else if(scanMessage("TIME")) {
                 event.getChannel().sendMessage("*It's tail time!*");
                 event.addReactionToMessage("GexSmirk:1154237747544997930");
+            }
+
+            lastTimeMsg = currentTimeMsg;
+            currentTimeMsg = System.currentTimeMillis();
+            if( (currentTimeMsg - lastTimeMsg) <= GexBot.CHAT_TIME_THRESHOLD ) {
+                chatCount++;
+                if(chatCount >= chatCountThreshold) {
+                    chatCount = 0;
+                    chatCountThreshold *= 1.5;
+                    event.getChannel().sendMessage(TextReader.generatePhrase());
+                }
+            } else {
+                chatCount -= ( (currentTimeMsg - lastTimeMsg) / (GexBot.CHAT_TIME_THRESHOLD*2) );
+                chatCountThreshold = GexBot.CHAT_COUNT_THRESHOLD;
+                if(chatCount < 0) { chatCount = 0; }
             }
         } else {
             switch (command) {
