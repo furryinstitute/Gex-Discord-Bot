@@ -15,8 +15,8 @@ public class TextReader {
                 }
             }
             br.close();
-            System.out.println("File \""+file+"\" successfully read.");
-        } catch (Exception e) { System.out.println("ERROR! Could not read file \""+file+"\""); }
+            System.out.println("[TextReader] File \""+file+"\" successfully read.");
+        } catch (Exception e) { System.out.println("[TextReader] ERROR! Could not read file \""+file+"\""); }
     }
 
     public static String readLine(String file) {
@@ -26,12 +26,12 @@ public class TextReader {
             BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
             line = br.readLine();
             br.close();
-            System.out.println("File \""+file+"\" successfully read.");
-        } catch (Exception e) { System.out.println("ERROR! Could not read file \""+file+"\""); }
+            System.out.println("[TextReader] File \""+file+"\" successfully read.");
+        } catch (Exception e) { System.out.println("[TextReader] ERROR! Could not read file \""+file+"\""); }
         return line;
     }
 
-    public static String generatePhrase() {
+    public static String generateQuip() {
         String sentence, name, result;
         int splice;
         double random;

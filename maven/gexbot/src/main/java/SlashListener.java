@@ -8,7 +8,8 @@ public class SlashListener implements SlashCommandCreateListener {
             case "gex":
                 event.getInteraction()
                 .createImmediateResponder()
-                .setContent(TextReader.generatePhrase())
+                .setContent(TextReader.generateQuip())
+                .setTts(true)
                 .respond();
                 break;
         }
