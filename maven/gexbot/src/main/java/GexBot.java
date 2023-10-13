@@ -44,7 +44,7 @@ public class GexBot {
         // Print successful connection to Discord.
         System.out.println("\n================================");
         System.out.println(  "|      GexBot For Discord      |");
-        System.out.println(  "|     v0.3.4 - Pre-Release     |");
+        System.out.println(  "|     v0.4.0 - Pre-Release     |");
         System.out.println(  "|  Developed by BurntBread007  |");
         System.out.println(  "================================");
         System.out.println("\n[GexBot] SUCCESSFULLY CONNECTED!\nYou can invite the bot by using the following URL: " + api.createBotInvite());
