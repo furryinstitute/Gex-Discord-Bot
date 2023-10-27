@@ -17,17 +17,21 @@ public class GexBot {
     final static int    CHAT_TIME_THRESHOLD = 15000;
     final static int    CHAT_COUNT_THRESHOLD = 7;
     final static String ADMIN_USER = "bread.java";
+    final static String VERSION = "v0.4.2";
+    final static String MAIN_CHANNEL_ID = "1155387693694455830";
+    final static String MAIN_CHANNEL_NAME = "general";
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
-    public static ArrayList<String> nameFileArr =       new ArrayList<String>();
-    public static ArrayList<String> sentenceFileArr =   new ArrayList<String>();
-    public static ArrayList<String> mentionFileArr =    new ArrayList<String>();
-    public static ArrayList<String> configFileArr =     new ArrayList<String>();
-           static Scanner           inp = new Scanner(System.in);
-           static String            AI_MODEL_PATH, AI_ROLE, AI_MODEL, TOKEN, USERID, TEXT_PATH, BOT_STATUS = "";
-           static int               THREAD_COUNT, AI_TOKEN_COUNT = 0;
-           static double            AI_TEMP = 0;
-    public static DiscordApi api;
+    static ArrayList<String> nameFileArr =       new ArrayList<String>();
+    static ArrayList<String> sentenceFileArr =   new ArrayList<String>();
+    static ArrayList<String> mentionFileArr =    new ArrayList<String>();
+    static ArrayList<String> configFileArr =     new ArrayList<String>();
+    static Scanner           inp = new Scanner(System.in);
+    static String            AI_MODEL_PATH, AI_ROLE, AI_MODEL, TOKEN, USERID, TEXT_PATH, BOT_STATUS = "";
+    static int               THREAD_COUNT, AI_TOKEN_COUNT = 0;
+    static double            AI_TEMP = 0;
+    static String            PREFIX = "!";
+    static DiscordApi api;
 
     public static void main(String[] args) {
         // User inputs settings and program reads any needed files.
@@ -45,7 +49,7 @@ public class GexBot {
         // Print successful connection to Discord.
         System.out.println("\n================================");
         System.out.println(  "|      GexBot For Discord      |");
-        System.out.println(  "|     v0.4.1 - Pre-Release     |");
+        System.out.println(    "|     "+VERSION+" - Pre-Release     |");
         System.out.println(  "|  Developed by BurntBread007  |");
         System.out.println(  "================================");
         System.out.println("\n[GexBot] SUCCESSFULLY CONNECTED!\nYou can invite the bot by using the following URL: " + api.createBotInvite());

@@ -1,8 +1,11 @@
+import java.awt.Color;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.javacord.api.entity.message.MessageAuthor;
+import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
 import com.hexadevlabs.gpt4all.LLModel;
 import com.hexadevlabs.gpt4all.LLModel.ChatCompletionResponse;
@@ -11,8 +14,9 @@ public class GexGPT implements Runnable {
     static LLModel model;
     static LLModel.GenerationConfig config;
     static ChatCompletionResponse test;
-    public static ArrayList<String[]> userArr = new ArrayList<String[]>();
-    public static ArrayList<MessageCreateEvent> replyQueue = new ArrayList<MessageCreateEvent>();
+    static ArrayList<String[]> userArr = new ArrayList<String[]>();
+    static ArrayList<MessageCreateEvent> replyQueue = new ArrayList<MessageCreateEvent>();
+    static int maxReplyPrint = 5;
 
     public void run() {
         System.out.println("\n[GexGPT] AI reply queue initialized.\n");
@@ -67,18 +71,53 @@ public class GexGPT implements Runnable {
             return "Sorry, but I don't know how to answer your statement. I'm just a goofy and silly lizard that likes to reference celebrities from the 1990s.";
         }
     }
-    public static String printQueue() {
-        int length = 10;
-        if (replyQueue.size() == 0) { return "There are no messages in my AI chat queue!"; }
-        if (replyQueue.size() < 10) { length = replyQueue.size(); }
-        String result = "Upcoming messages in my AI chat queue!\n";
+
+    public static String printPrompts() {
+        int length;
+        if (replyQueue.size() == 0) { return ""; }
+        if (replyQueue.size() < maxReplyPrint) { length = replyQueue.size(); }
+        else { length = maxReplyPrint; }
+        String result = "";
         String message;
-        result+= "";
+        int endBound;
         for(int i = 0; i < length; i++) {
             message = replyQueue.get(i).getMessageContent();
-            message = message.substring(message.indexOf(">")+1);
-            result+= "**["+(i+1)+"]** `"+message+"`\n";
+            if(message.length() > 45) { endBound = 45; }
+            else { endBound = message.length(); }
+            message = message.substring(message.indexOf(">")+1, message.indexOf(">")+endBound);
+            result+= message+"\n";
         }
         return result;
+    }
+
+    public static EmbedBuilder embedQueue() {
+        EmbedBuilder embed = new EmbedBuilder();
+        embed
+            .setTitle("Upcoming messages in my AI Chat Queue:")
+            .setColor(Color.GREEN)
+        ;
+        
+        if(replyQueue.size() == 0) { embed.addField("", "There are no prompts for me to answer!"); }
+        else {
+            int num;
+            String indexes = "";
+            if(replyQueue.size() < maxReplyPrint) { num = replyQueue.size(); }
+            else { num = maxReplyPrint; }
+            for(int i = 0; i < num; i++)
+                indexes += ""+(i+1)+"\n";
+            embed
+                .addInlineField("Index", indexes)
+                .addInlineField("Prompt", printPrompts())
+                .setFooter("Total Prompts in Queue: "+replyQueue.size())
+            ;
+        }
+        return embed;
+    }
+
+    public static void clearContext() {
+        for(int i = 0; i < userArr.size(); i++) {
+            userArr.remove(0);
+        }
+        System.out.println("[GexGPT] User context array is cleared.");
     }
 }
