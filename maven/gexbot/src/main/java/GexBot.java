@@ -16,6 +16,7 @@ public class GexBot {
     final static String CONFIG_FILE =   "config.txt";
     final static int    CHAT_TIME_THRESHOLD = 15000;
     final static int    CHAT_COUNT_THRESHOLD = 7;
+    final static String ADMIN_USER = "bread.java";
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
     public static ArrayList<String> nameFileArr =       new ArrayList<String>();
@@ -44,7 +45,7 @@ public class GexBot {
         // Print successful connection to Discord.
         System.out.println("\n================================");
         System.out.println(  "|      GexBot For Discord      |");
-        System.out.println(  "|     v0.4.0 - Pre-Release     |");
+        System.out.println(  "|     v0.4.1 - Pre-Release     |");
         System.out.println(  "|  Developed by BurntBread007  |");
         System.out.println(  "================================");
         System.out.println("\n[GexBot] SUCCESSFULLY CONNECTED!\nYou can invite the bot by using the following URL: " + api.createBotInvite());
@@ -56,18 +57,6 @@ public class GexBot {
         SlashCommand cmd1 = SlashCommand.with("gex", "Say Gex! Hear one of my newest & trendiest jokes!")
             .createGlobal(api)
             .join();
-        SlashCommand cmd2 = SlashCommand.with("ask", "Talk with Gex using an AI chat model!")
-            .createGlobal(api)
-            .join();
-        cmd2.delete();
-        SlashCommand cmd3 = SlashCommand.with("sleep", "Kill him (the daemon service of course!)")
-            .createGlobal(api)
-            .join();
-        cmd3.delete();
-        SlashCommand cmd4 = SlashCommand.with("ping", "Checks the functionality of this command")
-            .createGlobal(api)
-            .join();
-        cmd4.delete();
 
         // DISCORD API LISTENERS
         api.addListener(new MessageListener());
@@ -103,7 +92,7 @@ public class GexBot {
 
     static void readFiles() {
         if( TEXT_PATH.contains("\\") && !TEXT_PATH.endsWith("\\") ) { TEXT_PATH += "\\"; }
-        else if ( TEXT_PATH.contains("/") && !TEXT_PATH.endsWith("/") ) { TEXT_PATH += "/"; }
+        else if( TEXT_PATH.contains("/") && !TEXT_PATH.endsWith("/") ) { TEXT_PATH += "/"; }
         TOKEN =  TextReader.readLine(TEXT_PATH+TOKEN_FILE);
         USERID = TextReader.readLine(TEXT_PATH+USERID_FILE);
         TextReader.readLines(TEXT_PATH+NAME_FILE, nameFileArr);
@@ -118,7 +107,7 @@ public class GexBot {
             System.out.println(" - TOKEN.txt\n - USERID.txt\n - config.txt (optional)\n - names.txt\n - sentences.txt\n - mentions.txt");
             String input = inp.nextLine();
             if( input.contains("\\") && !input.endsWith("\\") ) { input += "\\"; }
-            else if ( input.contains("/") && !input.endsWith("/") ) { input += "/"; }
+            else if( input.contains("/") && !input.endsWith("/") ) { input += "/"; }
             FileInputStream pathExistCheck = new FileInputStream(input+TOKEN_FILE);
             pathExistCheck.close();
             return input;
@@ -133,7 +122,7 @@ public class GexBot {
 
             String input = inp.nextLine();
             if( input.contains("\\") && !input.endsWith("\\") ) { input += "\\"; }
-            else if ( input.contains("/") && !input.endsWith("/") ) { input += "/"; }
+            else if( input.contains("/") && !input.endsWith("/") ) { input += "/"; }
 
             FileInputStream pathExistCheck = new FileInputStream(input+configFileArr.get(1));
             pathExistCheck.close();
@@ -144,19 +133,29 @@ public class GexBot {
         }
     }
     static String setModel() {
-        System.out.println("\nEnter an AI chat model to use. Options include:\n - Falcon\n - Wizard\n - LLama\n - Uncensored");
-        switch(inp.nextLine().toLowerCase()) {
+        System.out.println("\nEnter an AI chat model to use. Options include:\n - Falcon\n - Wizard\n - LLama\n - Hermes\n - Uncensored");
+        String name = convertModelName(inp.nextLine());
+        if(name.equals("")) { 
+            System.out.println("[GexBot] ERROR! Unknown AI chat model received. Please try again.\n");
+            return setModel(); 
+        } else {
+            return name;
+        }
+    }
+    static String convertModelName(String name) {
+        switch(name.toLowerCase()) {
             case "falcon" :
                 return "ggml-model-gpt4all-falcon-q4_0.bin";
             case "wizard" :
                 return "wizardlm-13b-v1.1-superhot-8k.ggmlv3.q4_0.bin";
             case "llama" :
                 return "llama-2-7b-chat.ggmlv3.q4_0.bin";
+            case "hermes" :
+                return "nous-hermes-13b.ggmlv3.q4_0.bin";
             case "uncensored" :
                 return "wizardLM-13B-Uncensored.ggmlv3.q4_0.bin";
             default :
-                System.out.println("[GexBot] ERROR! Unknown AI chat model received. Please try again.\n");
-                return setModel();
+                return"";
         }
     }
     static double setTemp() {
@@ -220,7 +219,7 @@ public class GexBot {
             switch(argCommand) {
                 case "--text-path" :
                     if( argParam.contains("\\") && !argParam.endsWith("\\") ) { argParam += "\\"; }
-                    else if ( argParam.contains("/") && !argParam.endsWith("/") ) { argParam += "/"; }
+                    else if( argParam.contains("/") && !argParam.endsWith("/") ) { argParam += "/"; }
                     TEXT_PATH = argParam;
                     break;
                 case "--status" :

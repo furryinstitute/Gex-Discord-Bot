@@ -44,11 +44,13 @@ public class TextReader {
         name = GexBot.nameFileArr.get((int)random);
 
         result = sentence.substring(0, splice) + name + sentence.substring(splice+1);
+        MessageListener.countQuip++;
         return result;
     }
 
     public static String generateReply() {
         double random = Math.random() * GexBot.mentionFileArr.size();
+        MessageListener.countGex++;
         return (GexBot.mentionFileArr.get((int)random));
     }
 }

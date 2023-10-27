@@ -36,6 +36,7 @@ public class GexGPT implements Runnable {
                 .withNPredict(GexBot.AI_TOKEN_COUNT)
                 .withTemp((float)GexBot.AI_TEMP)
                 .build();
+        System.gc();
         System.out.println("\n\n[GexGPT] AI Model loaded successfully.\n");
     }
     public static int userIndex(MessageAuthor user) {
@@ -60,9 +61,24 @@ public class GexGPT implements Runnable {
             String[] array = { user.toString(), (context.substring(26, context.length()-2)) };
             userArr.set(index, array);
 
+            MessageListener.countAIReply++;
             return array[1];
         } catch (Exception e) {
             return "Sorry, but I don't know how to answer your statement. I'm just a goofy and silly lizard that likes to reference celebrities from the 1990s.";
         }
+    }
+    public static String printQueue() {
+        int length = 10;
+        if (replyQueue.size() == 0) { return "There are no messages in my AI chat queue!"; }
+        if (replyQueue.size() < 10) { length = replyQueue.size(); }
+        String result = "Upcoming messages in my AI chat queue!\n";
+        String message;
+        result+= "";
+        for(int i = 0; i < length; i++) {
+            message = replyQueue.get(i).getMessageContent();
+            message = message.substring(message.indexOf(">")+1);
+            result+= "**["+(i+1)+"]** `"+message+"`\n";
+        }
+        return result;
     }
 }

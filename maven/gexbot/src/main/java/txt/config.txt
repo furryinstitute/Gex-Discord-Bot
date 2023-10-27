@@ -1,17 +1,17 @@
 ## Config File for GexBot
-## Use a '#' at the beginning of any line to comment out the said line.
+## Use a '#' at the beginning of any line to comment out that line.
 
 ## Text Files Path (should be same as this file)
 N:\Projects\Coding\gexbot\maven\gexbot\src\main\java\txt
 
 ## Default AI Model
-ggml-model-gpt4all-falcon-q4_0.bin
+llama-2-7b-chat.ggmlv3.q4_0.bin
 
 ## AI Model Path
 N:\AI MODELS\
 
 ## AI Temperature
-0.7752
+0.8
 
 ## Max Token Count
 256
