@@ -1,11 +1,7 @@
-import java.awt.Color;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.javacord.api.entity.message.MessageAuthor;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
 import com.hexadevlabs.gpt4all.LLModel;
 import com.hexadevlabs.gpt4all.LLModel.ChatCompletionResponse;
@@ -16,6 +12,7 @@ public class GexGPT implements Runnable {
     static ChatCompletionResponse test;
     static ArrayList<String[]> userArr = new ArrayList<String[]>();
     static ArrayList<MessageCreateEvent> replyQueue = new ArrayList<MessageCreateEvent>();
+    static ArrayList<String[]> channelThreadArr = new ArrayList<String[]>();
     static int maxReplyPrint = 5;
 
     public void run() {
@@ -23,10 +20,20 @@ public class GexGPT implements Runnable {
         while(replyQueue.size() > 0) {
             MessageCreateEvent event = replyQueue.get(0);
             String message = event.getMessageContent();
-            MessageAuthor user = event.getMessageAuthor();
+            String user = event.getMessageAuthor().getIdAsString();
+            String result = "<@"+user+">";
+            for(int i = 0; i < channelThreadArr.size(); i++) {
+                String channelThread = event.getChannel().asServerThreadChannel().toString();
+                if(channelThreadArr.get(i)[0].equals(channelThread)) {
+                    user = channelThreadArr.get(i)[0];
+                    break;
+                }
+            }
+            
+            result += generateReply(user, message.substring(message.indexOf(">")+1));
 
             event.getChannel().type();
-            event.getChannel().sendMessage("<@" + (user.getIdAsString())+"> "+generateReply(user, message.substring(message.indexOf(">")+1)));
+            event.getChannel().sendMessage(result);
             replyQueue.remove(0);
         }
         System.out.println("\n[GexGPT] AI reply queue finished.\n");
@@ -43,18 +50,17 @@ public class GexGPT implements Runnable {
         System.gc();
         System.out.println("\n\n[GexGPT] AI Model loaded successfully.\n");
     }
-    public static int userIndex(MessageAuthor user) {
-        for(int x = 0; x < userArr.size(); x++) {
-            if(userArr.get(x)[0].equals(user.toString())) {
-                return x;
-            }
-        }
+
+    public static int getUserIndex(String user) {
+        for(int i = 0; i < userArr.size(); i++)
+            if(userArr.get(i)[0].equals(user))
+                return i;
         return -1;
     }
 
-    public static String generateReply(MessageAuthor user, String prompt) {
+    public static String generateReply(String user, String prompt) {
         try {
-            int index = userIndex(user);
+            int index = getUserIndex(user);
             String context = userArr.get(index)[1];
             test = model.chatCompletion(
                 List.of(Map.of("role", "system", "content", GexBot.AI_ROLE),
@@ -62,10 +68,10 @@ public class GexGPT implements Runnable {
                         Map.of("role", "user", "content", prompt)), config, true, true);
 
             context = test.choices.toString();
-            String[] array = { user.toString(), (context.substring(26, context.length()-2)) };
+            String[] array = { user, (context.substring(26, context.length()-2)) };
             userArr.set(index, array);
 
-            MessageListener.countAIReply++;
+            GexCommands.countAIReply++;
             return array[1];
         } catch (Exception e) {
             return "Sorry, but I don't know how to answer your statement. I'm just a goofy and silly lizard that likes to reference celebrities from the 1990s.";
@@ -82,42 +88,19 @@ public class GexGPT implements Runnable {
         int endBound;
         for(int i = 0; i < length; i++) {
             message = replyQueue.get(i).getMessageContent();
-            if(message.length() > 45) { endBound = 45; }
+            message = message.substring(message.indexOf(">")+1);
+
+            if( message.length() > 45) { endBound = 45; }
             else { endBound = message.length(); }
-            message = message.substring(message.indexOf(">")+1, message.indexOf(">")+endBound);
+            message = message.substring(0, endBound);
             result+= message+"\n";
         }
         return result;
     }
 
-    public static EmbedBuilder embedQueue() {
-        EmbedBuilder embed = new EmbedBuilder();
-        embed
-            .setTitle("Upcoming messages in my AI Chat Queue:")
-            .setColor(Color.GREEN)
-        ;
-        
-        if(replyQueue.size() == 0) { embed.addField("", "There are no prompts for me to answer!"); }
-        else {
-            int num;
-            String indexes = "";
-            if(replyQueue.size() < maxReplyPrint) { num = replyQueue.size(); }
-            else { num = maxReplyPrint; }
-            for(int i = 0; i < num; i++)
-                indexes += ""+(i+1)+"\n";
-            embed
-                .addInlineField("Index", indexes)
-                .addInlineField("Prompt", printPrompts())
-                .setFooter("Total Prompts in Queue: "+replyQueue.size())
-            ;
-        }
-        return embed;
-    }
-
     public static void clearContext() {
-        for(int i = 0; i < userArr.size(); i++) {
+        for(int i = 0; i < userArr.size(); i++)
             userArr.remove(0);
-        }
         System.out.println("[GexGPT] User context array is cleared.");
     }
 }

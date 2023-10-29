@@ -17,9 +17,7 @@ public class GexBot {
     final static int    CHAT_TIME_THRESHOLD = 15000;
     final static int    CHAT_COUNT_THRESHOLD = 7;
     final static String ADMIN_USER = "bread.java";
-    final static String VERSION = "v0.4.2";
-    final static String MAIN_CHANNEL_ID = "1155387693694455830";
-    final static String MAIN_CHANNEL_NAME = "general";
+    final static String VERSION = "v0.5.0";
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
     static ArrayList<String> nameFileArr =       new ArrayList<String>();
@@ -28,9 +26,9 @@ public class GexBot {
     static ArrayList<String> configFileArr =     new ArrayList<String>();
     static Scanner           inp = new Scanner(System.in);
     static String            AI_MODEL_PATH, AI_ROLE, AI_MODEL, TOKEN, USERID, TEXT_PATH, BOT_STATUS = "";
+    static String            PREFIX = "!";
     static int               THREAD_COUNT, AI_TOKEN_COUNT = 0;
     static double            AI_TEMP = 0;
-    static String            PREFIX = "!";
     static DiscordApi api;
 
     public static void main(String[] args) {
@@ -58,13 +56,43 @@ public class GexBot {
         api.updateActivity( ActivityType.PLAYING , BOT_STATUS);
 
         // SLASH COMMAND LIST
-        SlashCommand cmd1 = SlashCommand.with("gex", "Say Gex! Hear one of my newest & trendiest jokes!")
+        SlashCommand cmd;
+        cmd = SlashCommand.with("gex", "Say Gex! Hear one of my newest & trendiest jokes!")
+            .createGlobal(api)
+            .join();
+        cmd = SlashCommand.with("time", "It's tail time!")
+            .createGlobal(api)
+            .join();
+        cmd = SlashCommand.with("queue", "Check the order of prompts I'm writing responses to!")
+            .createGlobal(api)
+            .join();
+        cmd = SlashCommand.with("context", "(Admin-Only) Clears the context for my AI replies. Applies to everyone.")
+            .createGlobal(api)
+            .join();
+        cmd = SlashCommand.with("stats", "Check out all the numbas.")
+            .createGlobal(api)
+            .join();
+        cmd = SlashCommand.with("shutdown", "(Admin-Only) Sends me off to a faraway land.")
+            .createGlobal(api)
+            .join();
+        cmd = SlashCommand.with("restart", "(Admin-Only) I always come back.")
             .createGlobal(api)
             .join();
 
         // DISCORD API LISTENERS
         api.addListener(new MessageListener());
         api.addSlashCommandCreateListener(new SlashListener());
+        api.addServerThreadChannelCreateListener(event -> {
+            String[] threadContext = { event.getChannel().asServerThreadChannel().toString(), "" };
+            GexGPT.userArr.add(threadContext);
+            GexGPT.channelThreadArr.add(threadContext);
+            System.out.print(threadContext[0]+"\n"+threadContext[1]);
+        });
+        api.addServerThreadChannelDeleteListener(event -> {
+            String[] threadContext = { event.getChannel().asServerThreadChannel().toString(), "" };
+            GexGPT.userArr.remove(GexGPT.userArr.indexOf(threadContext));
+            GexGPT.channelThreadArr.remove(GexGPT.userArr.indexOf(threadContext));
+        });
     }
 
     // Checks if a configuration file is already present, and if not then flow through setX() methods to retrieve config.
@@ -159,7 +187,7 @@ public class GexBot {
             case "uncensored" :
                 return "wizardLM-13B-Uncensored.ggmlv3.q4_0.bin";
             default :
-                return"";
+                return "";
         }
     }
     static double setTemp() {
@@ -234,6 +262,5 @@ public class GexBot {
                     break;
             }
         }
-        
     }
 }

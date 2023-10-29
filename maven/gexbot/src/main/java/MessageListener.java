@@ -1,18 +1,14 @@
 import org.javacord.api.listener.message.MessageCreateListener;
-import java.awt.Color;
-import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageAuthor;
-import org.javacord.api.entity.message.embed.EmbedBuilder;
 import org.javacord.api.event.message.MessageCreateEvent;
 
 public class MessageListener implements MessageCreateListener {
 
     long currentTimeMsg, lastTimeMsg = 0;
-    long firstTime = System.currentTimeMillis();
+    static long firstTime = System.currentTimeMillis();
     int chatCount = 0;
     int chatCountThreshold = GexBot.CHAT_COUNT_THRESHOLD;
-    static int countAIReply, countQuip, countGex, countTailTimes = 0;
     Thread thread;
 
     @Override
@@ -36,98 +32,55 @@ public class MessageListener implements MessageCreateListener {
 
         if(command.startsWith(GexBot.PREFIX)) {
             command = command.substring(1);
-            EmbedBuilder embed = new EmbedBuilder();
-
             switch (command) {
                 case "TIME" :
-                    channel.sendMessage( "It's tail time! <:GexSmirk:1154237747544997930>");
-                    countTailTimes++;
+                    channel.sendMessage(GexCommands.time());
                     break;
                 case "GEX" :
-                    channel.sendMessage(TextReader.generateQuip());
+                    channel.sendMessage(GexCommands.quip());
                     break;
                 case "STATUS" :
                     if(isAdmin) { 
-                        GexBot.api.updateActivity( ActivityType.PLAYING, msg);
-                        System.out.println("[MessageListener] Activity status changed to \""+msg+"\".");
-                        channel.sendMessage("Status successfully changed! <:GexSmirk:1154237747544997930>");
+                        channel.sendMessage(GexCommands.status(msg));
                     } break;
                 case "QUEUE" :
-                    channel.sendMessage(GexGPT.embedQueue());
+                    channel.sendMessage(GexCommands.queue());
                     break;
                 case "CONTEXT" :
-                    if((GexBot.PREFIX+command).equals(msgCaps)) {
-                        GexGPT.clearContext();
-                        channel.sendMessage("AI context is cleared!");
-                    }
+                    channel.sendMessage(GexCommands.context());
                     break;
                 case "PREFIX" :
                     if(isAdmin) {
-                        GexBot.PREFIX = msg.substring(0, 1);
-                        System.out.println("[MessageListener] Command prefix changed to "+GexBot.PREFIX+".");
-                        channel.sendMessage("Changed command prefix to "+GexBot.PREFIX+".");
-                    } break;
+                        GexCommands.prefix(msg);
+                    }
+                    break;
                 case "MODEL" :
-                    if(isAdmin) {
-                        if((GexBot.PREFIX+command).equals(msgCaps)) {
-                            embed
-                                .setTitle("AI Chat Model List")
-                                .setColor(Color.GREEN)
-                                .addField("", "\n- Falcon\n- Wizard\n- Llama\n- Hermes\n- Uncensored")
-                                .addField("Type \""+GexBot.PREFIX+"model NAME\" to change the model.", "")
-                            ;
-                            channel.sendMessage(embed);
-                            break;
-                        }
-
-                        String temp = GexBot.convertModelName(msg);
-                        if(temp.equals("")) {
-                            System.out.println("[MessageListener] AI chat model could not be changed to \""+msg+"\".");
-                            channel.sendMessage("AI chat model could not be changed to "+msg+"!");
-                            break;
-                        } else {
-                            GexBot.AI_MODEL = temp;
-                            GexGPT.loadModel();
-                            System.out.println("[MessageListener] AI chat model successfully changed to \""+msg+"\".");
-                            channel.sendMessage("AI chat model successfully changed to "+msg+"!");
-                        }
-                    } break;
+                    if(isAdmin && !(GexBot.PREFIX+command).equals(msgCaps))
+                        channel.sendMessage(GexCommands.model(command, msgCaps.substring(msgCaps.indexOf(" ")+1)));
+                    else
+                        channel.sendMessage(GexCommands.model());
+                    break;
                 case "STATS" :
-                    long days, hours, minutes, seconds;
-                    seconds = (System.currentTimeMillis()-firstTime) / 1000;
-                    minutes = seconds / 60;
-                    hours = minutes / 60;
-                    days = hours / 24;
-                    seconds %= 60;
-                    minutes %= 60;
-                    hours %= 24;
-
-                    embed
-                        .setAuthor("GexBot "+GexBot.VERSION, "http://github.com/burntbread007/GexBot/", "https://cdn.discordapp.com/avatars/1154245369488756778/cc6e4baf92995a63317c1dad9e265d23.webp")
-                        .setTitle("Global Statistics")
-                        .setColor(Color.GREEN)
-                        .addField("Total Messages Written:", "")
-                        .addInlineField("Quips", countQuip+"")
-                        .addInlineField("AI Replies", countAIReply+"")
-                        .addInlineField("Gex References", countGex+"")
-                        .addField("Current AI Model", GexBot.AI_MODEL)
-                        .addField("Elapsed Runtime", days+" days, "+hours+" hours, "+minutes+" minutes, "+seconds+" seconds")
-                        .setFooter("\"It's tail time!\" - Gexy")
-                    ;
-                    channel.sendMessage(embed);
+                    channel.sendMessage(GexCommands.stats());
                     break;
                 case "SHUTDOWN" :
                     if(isAdmin) {
-                        System.out.println("[MessageListener] Shutting down program by request...");
                         channel.sendMessage("Bye bye!");
-                        System.exit(0);
-                    } break;
+                        GexCommands.shutdown();
+                    }
+                    break;
+                case "RESTART" :
+                    if(isAdmin) {
+                        channel.sendMessage("I always come back.");
+                        GexCommands.restart();
+                    }
+                    break;
             }
 
         } else {
             if(command.equals(selfPing)) {
-                if(GexGPT.userIndex(msgAuthor) == -1) {
-                    String[] user = { msgAuthor.toString(), "" };
+                if(GexGPT.getUserIndex(msgAuthor.getIdAsString()) == -1) {
+                    String[] user = { msgAuthor.getIdAsString(), "" };
                     GexGPT.userArr.add(user);
                     System.out.println("[MessageListener] Added user "+user[0]+" to AI context array.");
                 }
@@ -142,10 +95,9 @@ public class MessageListener implements MessageCreateListener {
             else if(msgCaps.contains("TIME")) {
                 channel.sendMessage("*It's tail time!*");
                 event.addReactionToMessage("GexSmirk:1154237747544997930");
-                countTailTimes++;
             }
             else if(msgCaps.contains("GEX") || msgCaps.contains(selfPing)) {
-                channel.sendMessage( "<@" + (msgAuthor.getIdAsString())+"> " + TextReader.generateReply());
+                channel.sendMessage( "<@" + (msgAuthor.getIdAsString())+"> " + GexCommands.reply());
             }
             else if(msgCaps.contains("CRAZY")) {
                 channel.sendMessage( "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. Rats make me crazy.");
@@ -158,7 +110,7 @@ public class MessageListener implements MessageCreateListener {
                     if(chatCount >= chatCountThreshold) {
                         chatCount = 0;
                         chatCountThreshold *= 1.5;
-                        channel.sendMessage(TextReader.generateQuip());
+                        channel.sendMessage(GexCommands.quip());
                     }
                 } else {
                     chatCount -= ( (currentTimeMsg - lastTimeMsg) / (GexBot.CHAT_TIME_THRESHOLD*2) );
@@ -167,5 +119,6 @@ public class MessageListener implements MessageCreateListener {
                 }
             }
         }
+        return;
     }
 }
