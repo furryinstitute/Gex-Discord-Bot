@@ -18,11 +18,12 @@ public class MessageListener implements MessageCreateListener {
 
         TextChannel channel = event.getChannel();
         boolean isAdmin = msgAuthor.getDisplayName().equals(GexBot.ADMIN_USER);
-        String msg, selfPing, command, msgCaps;
+        String msg, selfPing, command, msgCaps, threadChannel;
 
         msg = event.getMessageContent();
         msgCaps = msg.toUpperCase();
         selfPing = "<@"+(GexBot.USERID)+">";
+        threadChannel = event.getChannel().asServerThreadChannel().toString();
 
         if(!msg.contains(" ")) { command = msgCaps; }
         else {
@@ -47,7 +48,10 @@ public class MessageListener implements MessageCreateListener {
                     channel.sendMessage(GexCommands.queue());
                     break;
                 case "CONTEXT" :
-                    channel.sendMessage(GexCommands.context());
+                    channel.sendMessage(GexCommands.context(msgAuthor.getIdAsString(), threadChannel));
+                    break;
+                case "TEMP" :
+                    channel.sendMessage(GexCommands.temp(msgCaps.substring(msgCaps.indexOf(" ")+1)));
                     break;
                 case "PREFIX" :
                     if(isAdmin) {
@@ -79,10 +83,15 @@ public class MessageListener implements MessageCreateListener {
 
         } else {
             if(command.equals(selfPing)) {
-                if(GexGPT.getUserIndex(msgAuthor.getIdAsString()) == -1) {
-                    String[] user = { msgAuthor.getIdAsString(), "" };
+                if(GexGPT.getIndex(GexGPT.userArr, msgAuthor.getIdAsString()) == -1) {
+                    String[] user = { msgAuthor.getIdAsString(), "", "" };
                     GexGPT.userArr.add(user);
                     System.out.println("[MessageListener] Added user "+user[0]+" to AI context array.");
+                }
+                if( (GexGPT.getIndex(GexGPT.channelThreadArr, threadChannel) == -1) && !(threadChannel.equals("Optional.empty")) ) {
+                    String[] thread = { threadChannel, "", "" };
+                    GexGPT.channelThreadArr.add(thread);
+                    System.out.println("[MessageListener] Added thread "+thread[0]+" to AI context array.");
                 }
                 GexGPT.replyQueue.add(event);
 

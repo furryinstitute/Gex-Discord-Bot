@@ -17,7 +17,7 @@ public class GexBot {
     final static int    CHAT_TIME_THRESHOLD = 15000;
     final static int    CHAT_COUNT_THRESHOLD = 7;
     final static String ADMIN_USER = "bread.java";
-    final static String VERSION = "v0.5.0";
+    final static String VERSION = "v0.5.1";
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
     static ArrayList<String> nameFileArr =       new ArrayList<String>();
@@ -50,7 +50,6 @@ public class GexBot {
         System.out.println(    "|     "+VERSION+" - Pre-Release     |");
         System.out.println(  "|  Developed by BurntBread007  |");
         System.out.println(  "================================");
-        System.out.println("\n[GexBot] SUCCESSFULLY CONNECTED!\nYou can invite the bot by using the following URL: " + api.createBotInvite());
 
         // BOT STATUS ACTIVITY SET
         api.updateActivity( ActivityType.PLAYING , BOT_STATUS);
@@ -66,7 +65,7 @@ public class GexBot {
         cmd = SlashCommand.with("queue", "Check the order of prompts I'm writing responses to!")
             .createGlobal(api)
             .join();
-        cmd = SlashCommand.with("context", "(Admin-Only) Clears the context for my AI replies. Applies to everyone.")
+        cmd = SlashCommand.with("context", "Clears only your context for my AI replies.")
             .createGlobal(api)
             .join();
         cmd = SlashCommand.with("stats", "Check out all the numbas.")
@@ -83,16 +82,12 @@ public class GexBot {
         api.addListener(new MessageListener());
         api.addSlashCommandCreateListener(new SlashListener());
         api.addServerThreadChannelCreateListener(event -> {
-            String[] threadContext = { event.getChannel().asServerThreadChannel().toString(), "" };
+            String[] threadContext = { event.getChannel().asServerThreadChannel().toString(), "", "" };
             GexGPT.userArr.add(threadContext);
             GexGPT.channelThreadArr.add(threadContext);
-            System.out.print(threadContext[0]+"\n"+threadContext[1]);
         });
-        api.addServerThreadChannelDeleteListener(event -> {
-            String[] threadContext = { event.getChannel().asServerThreadChannel().toString(), "" };
-            GexGPT.userArr.remove(GexGPT.userArr.indexOf(threadContext));
-            GexGPT.channelThreadArr.remove(GexGPT.userArr.indexOf(threadContext));
-        });
+        System.out.println("\n[GexBot] Successfully created event listeners.");
+        System.out.println("\n[GexBot] SUCCESSFULLY CONNECTED!\nYou can invite the bot by using the following URL: " + api.createBotInvite());
     }
 
     // Checks if a configuration file is already present, and if not then flow through setX() methods to retrieve config.
@@ -127,9 +122,9 @@ public class GexBot {
         else if( TEXT_PATH.contains("/") && !TEXT_PATH.endsWith("/") ) { TEXT_PATH += "/"; }
         TOKEN =  TextReader.readLine(TEXT_PATH+TOKEN_FILE);
         USERID = TextReader.readLine(TEXT_PATH+USERID_FILE);
-        TextReader.readLines(TEXT_PATH+NAME_FILE, nameFileArr);
-        TextReader.readLines(TEXT_PATH+SENTENCE_FILE, sentenceFileArr);
-        TextReader.readLines(TEXT_PATH+MENTION_FILE, mentionFileArr);
+        nameFileArr = TextReader.readLines(TEXT_PATH+NAME_FILE, nameFileArr);
+        sentenceFileArr = TextReader.readLines(TEXT_PATH+SENTENCE_FILE, sentenceFileArr);
+        mentionFileArr = TextReader.readLines(TEXT_PATH+MENTION_FILE, mentionFileArr);
     }
 
     // All following setAbc() methods are used in configureSettings() to retrieve each option individually.

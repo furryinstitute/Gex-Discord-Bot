@@ -1,9 +1,9 @@
 import java.awt.Color;
-
 import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 public class GexCommands {
+
     static int countQuip, countAIReply, countGex = 0;
 
     public static EmbedBuilder stats() {
@@ -51,10 +51,6 @@ public class GexCommands {
     }
 
     public static EmbedBuilder model() {
-        while(GexGPT.replyQueue.size() != 0) {
-            try { Thread.sleep(1000); }
-            catch (Exception e) {}
-        }
         EmbedBuilder embed = new EmbedBuilder();
         embed
             .setTitle("AI Chat Model List")
@@ -129,10 +125,21 @@ public class GexCommands {
         return (GexBot.mentionFileArr.get((int)random));
     }
 
-    public static String context() {
-        GexGPT.clearContext();
-        System.out.println("[GexCommands] AI context array has been clearned.");
-        return "AI context is cleared!";
+    public static String context(String userID, String thread) {
+        GexGPT.clearContext(userID, thread);
+        System.out.println("[GexCommands] AI context for user "+userID+" has been cleared.");
+        return "AI context for <@"+userID+"> is cleared!";
+    }
+
+    public static String temp(String msg) {
+        double num = Double.parseDouble(msg);
+        if(num > 2 || num < 0)
+            return "That number is outside my temp range! Try again between 0 and 2.";
+        else {
+            GexBot.AI_TEMP = num;
+            GexGPT.loadModel();
+            return "Temperature changed to "+num+"!";
+        }
     }
 
     public static String status(String msg) {
@@ -149,6 +156,11 @@ public class GexCommands {
 
     public static void shutdown() {
         System.out.println("[GexCommands] Requested shutdown by admin...");
+        while(GexGPT.replyQueue.size() != 0) {
+            System.out.println("[GexCommands] AI replies are still being generated! Waiting for replies to finish before shutting down.");
+            try { Thread.sleep(15000); }
+            catch (Exception e) {}
+        }
         System.exit(0);
     }
 

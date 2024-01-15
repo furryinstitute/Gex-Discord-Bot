@@ -20,17 +20,12 @@ public class GexGPT implements Runnable {
         while(replyQueue.size() > 0) {
             MessageCreateEvent event = replyQueue.get(0);
             String message = event.getMessageContent();
-            String user = event.getMessageAuthor().getIdAsString();
-            String result = "<@"+user+">";
-            for(int i = 0; i < channelThreadArr.size(); i++) {
-                String channelThread = event.getChannel().asServerThreadChannel().toString();
-                if(channelThreadArr.get(i)[0].equals(channelThread)) {
-                    user = channelThreadArr.get(i)[0];
-                    break;
-                }
-            }
-            
-            result += generateReply(user, message.substring(message.indexOf(">")+1));
+            String userID = event.getMessageAuthor().getIdAsString();
+            String username = event.getMessageAuthor().getDisplayName();
+            String thread = event.getChannel().asServerThreadChannel().toString();
+            String result = "<@"+userID+">";
+
+            result += generateReply(userID, username, thread, message.substring(message.indexOf(">")+1));
 
             event.getChannel().type();
             event.getChannel().sendMessage(result);
@@ -51,28 +46,50 @@ public class GexGPT implements Runnable {
         System.out.println("\n\n[GexGPT] AI Model loaded successfully.\n");
     }
 
-    public static int getUserIndex(String user) {
-        for(int i = 0; i < userArr.size(); i++)
-            if(userArr.get(i)[0].equals(user))
+    public static int getIndex(ArrayList<String[]> array, String id) {
+        for(int i = 0; i < array.size(); i++)
+            if(array.get(i)[0].equals(id))
                 return i;
         return -1;
     }
 
-    public static String generateReply(String user, String prompt) {
+    public static String generateReply(String userID, String username, String thread, String prompt) {
         try {
-            int index = getUserIndex(user);
-            String context = userArr.get(index)[1];
+            String userContext, aiContext;
+            int index;
+            boolean isThread = getIndex(channelThreadArr, thread) >= 0;
+            if(isThread) {
+                index = getIndex(channelThreadArr, thread);
+                userContext = channelThreadArr.get(index)[1];
+                aiContext = channelThreadArr.get(index)[2];
+            } else {
+                index = getIndex(userArr, userID);
+                userContext = userArr.get(index)[1];
+                aiContext = userArr.get(index)[2];
+            }
             test = model.chatCompletion(
                 List.of(Map.of("role", "system", "content", GexBot.AI_ROLE),
-                        Map.of("role", "system", "content", context),
+                        Map.of("role", "system", "content", "The user's name is "+username+". "),
+                        Map.of("role", "user", "content", userContext),
+                        Map.of("role", "assistant", "content", aiContext),
                         Map.of("role", "user", "content", prompt)), config, true, true);
-
-            context = test.choices.toString();
-            String[] array = { user, (context.substring(26, context.length()-2)) };
-            userArr.set(index, array);
+            userContext = prompt;
+            aiContext = test.choices.toString();
+            aiContext = aiContext.substring(26, aiContext.length()-2);
+            
+            String[] array = new String[3];
+            array[1] = userContext;
+            array[2] = aiContext;
+            if(isThread) {
+                array[0] = thread;
+                channelThreadArr.set(index, array);
+            } else {
+                array[0] = userID;
+                userArr.set(index, array);
+            }
 
             GexCommands.countAIReply++;
-            return array[1];
+            return array[2];
         } catch (Exception e) {
             return "Sorry, but I don't know how to answer your statement. I'm just a goofy and silly lizard that likes to reference celebrities from the 1990s.";
         }
@@ -98,9 +115,15 @@ public class GexGPT implements Runnable {
         return result;
     }
 
-    public static void clearContext() {
-        for(int i = 0; i < userArr.size(); i++)
-            userArr.remove(0);
-        System.out.println("[GexGPT] User context array is cleared.");
+    public static void clearContext(String userID, String thread) {
+        int index;
+        if(getIndex(channelThreadArr, thread) == -1) {
+            index = getIndex(userArr, userID);
+            if(index != -1)
+                userArr.remove(index);
+        } else {
+            index = getIndex(channelThreadArr, thread);
+            channelThreadArr.remove(index);
+        }
     }
 }

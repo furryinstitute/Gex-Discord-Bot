@@ -26,12 +26,13 @@ public class SlashListener implements SlashCommandCreateListener {
                     .setTts(false)
                 .respond();
                 break;
-            case "CONTEXT" :
+        // CONTEXT COMMAND IS BROKEN
+            /*case "CONTEXT" :
                 reply
-                    .setContent(GexCommands.context())
+                    .setContent(GexCommands.context(event.getInteraction().getUser().getIdAsString()))
                     .setTts(true)
                 .respond();
-                break;
+                break;*/
             case "STATS" :
                 reply
                     .addEmbed(GexCommands.stats())
