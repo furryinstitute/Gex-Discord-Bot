@@ -75,7 +75,7 @@ public class GexCommands {
             if(GexGPT.replyQueue.size() < GexGPT.maxReplyPrint) { num = GexGPT.replyQueue.size(); }
             else { num = GexGPT.maxReplyPrint; }
             for(int i = 0; i < num; i++)
-                indexes += ""+(i+1)+"\n";
+                indexes += (i+1)+"\n";
             embed
                 .addInlineField("Index", indexes)
                 .addInlineField("Prompt", GexGPT.printPrompts())
@@ -88,12 +88,12 @@ public class GexCommands {
     public static String model(String command, String msg) {
         String temp = GexBot.convertModelName(msg);
         if(temp.equals("")) {
-            System.out.println("[GexCommands] AI chat model could not be changed to \""+msg+"\".");
+            System.out.printf("\n[GexCommands] AI chat model could not be changed to \"%s\".", msg);
             return "AI chat model could not be changed to "+msg+"!";
         } else {
             GexBot.AI_MODEL = temp;
             GexGPT.loadModel();
-            System.out.println("[GexCommands] AI chat model successfully changed to \""+msg+"\".");
+            System.out.println("\n[GexCommands] AI chat model successfully changed to \""+msg+"\".");
             return "AI chat model successfully changed to "+msg+"!";
         }
     }
@@ -126,9 +126,23 @@ public class GexCommands {
     }
 
     public static String context(String userID, String thread) {
+        System.out.printf("\n[GexCommands] Request received to clear AI context from user %s.", userID);
+        waitForQueue();
+
         GexGPT.clearContext(userID, thread);
-        System.out.println("[GexCommands] AI context for user "+userID+" has been cleared.");
-        return "AI context for <@"+userID+"> is cleared!";
+        String print, ret;
+        print = ret = "";
+        if(GexGPT.getIndex(GexGPT.userArr, userID) != -1) {
+            print += "\n[GexCommands] AI context for user "+userID+" has been cleared.\n";
+            ret += "AI context for <@"+userID+"> is cleared!";
+        } 
+        if(GexGPT.getIndex(GexGPT.channelThreadArr, thread) != -1) {
+            print += "\n[GexCommands] AI context for thread "+thread+" has been cleared.";
+            ret += "AI context for thread "+thread+" is cleared!";
+        }
+
+        System.out.println(print);
+        return ret;
     }
 
     public static String temp(String msg) {
@@ -144,28 +158,34 @@ public class GexCommands {
 
     public static String status(String msg) {
         GexBot.api.updateActivity( ActivityType.PLAYING, msg);
-        System.out.println("[GexCommands] Activity status changed to \""+msg+"\".");
+        System.out.printf("\n[GexCommands] Activity status changed to \"%s\".", msg);
         return "Status successfully changed! <:GexSmirk:1154237747544997930>";
     }
 
     public static String prefix(String msg) {
             GexBot.PREFIX = msg.substring(0, 1);
-            System.out.println("[MessageListener] Command prefix changed to "+GexBot.PREFIX+".");
+            System.out.println("\n[MessageListener] Command prefix changed to "+GexBot.PREFIX+".");
             return "Changed command prefix to "+GexBot.PREFIX+".";
     }
 
     public static void shutdown() {
-        System.out.println("[GexCommands] Requested shutdown by admin...");
-        while(GexGPT.replyQueue.size() != 0) {
-            System.out.println("[GexCommands] AI replies are still being generated! Waiting for replies to finish before shutting down.");
-            try { Thread.sleep(15000); }
-            catch (Exception e) {}
-        }
+        System.out.println("\n[GexCommands] Requested shutdown by admin...");
+        waitForQueue();
+        //System.out.println("\n[GexCommands] AI replies are still being generated! Waiting for replies to finish before shutting down.");
         System.exit(0);
     }
 
     public static void restart() {
-        System.out.println("[GexCommands] Requested intentional exception by admin...");
+        System.out.println("\n[GexCommands] Requested intentional exception by admin...");
+        waitForQueue();
         System.exit(1);
+    }
+
+    public static void waitForQueue() {
+        if(GexGPT.replyQueue.size() > 0) {
+            try { Thread.sleep(1000); }
+            catch (Exception e) {}
+            waitForQueue();
+        }
     }
 }

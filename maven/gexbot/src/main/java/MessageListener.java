@@ -6,8 +6,8 @@ import org.javacord.api.event.message.MessageCreateEvent;
 public class MessageListener implements MessageCreateListener {
 
     long currentTimeMsg, lastTimeMsg = 0;
-    static long firstTime = System.currentTimeMillis();
     int chatCount = 0;
+    final static long firstTime = System.currentTimeMillis();
     int chatCountThreshold = GexBot.CHAT_COUNT_THRESHOLD;
     Thread thread;
 
@@ -18,12 +18,15 @@ public class MessageListener implements MessageCreateListener {
 
         TextChannel channel = event.getChannel();
         boolean isAdmin = msgAuthor.getDisplayName().equals(GexBot.ADMIN_USER);
-        String msg, selfPing, command, msgCaps, threadChannel;
+        String msg, selfPing, command, msgCaps, threadChannel, userID;
 
         msg = event.getMessageContent();
         msgCaps = msg.toUpperCase();
-        selfPing = "<@"+(GexBot.USERID)+">";
+        selfPing = String.format("<@%s>", GexBot.USERID);
         threadChannel = event.getChannel().asServerThreadChannel().toString();
+        userID = msgAuthor.getIdAsString();
+
+        //User user = event.getMessageAuthor().asUser();
 
         if(!msg.contains(" ")) { command = msgCaps; }
         else {
@@ -41,22 +44,21 @@ public class MessageListener implements MessageCreateListener {
                     channel.sendMessage(GexCommands.quip());
                     break;
                 case "STATUS" :
-                    if(isAdmin) { 
+                    if(isAdmin)
                         channel.sendMessage(GexCommands.status(msg));
-                    } break;
+                    break;
                 case "QUEUE" :
                     channel.sendMessage(GexCommands.queue());
                     break;
                 case "CONTEXT" :
-                    channel.sendMessage(GexCommands.context(msgAuthor.getIdAsString(), threadChannel));
+                    channel.sendMessage(GexCommands.context(userID, threadChannel));
                     break;
                 case "TEMP" :
                     channel.sendMessage(GexCommands.temp(msgCaps.substring(msgCaps.indexOf(" ")+1)));
                     break;
                 case "PREFIX" :
-                    if(isAdmin) {
+                    if(isAdmin)
                         GexCommands.prefix(msg);
-                    }
                     break;
                 case "MODEL" :
                     if(isAdmin && !(GexBot.PREFIX+command).equals(msgCaps))
@@ -83,21 +85,24 @@ public class MessageListener implements MessageCreateListener {
 
         } else {
             if(command.equals(selfPing)) {
-                if(GexGPT.getIndex(GexGPT.userArr, msgAuthor.getIdAsString()) == -1) {
-                    String[] user = { msgAuthor.getIdAsString(), "", "" };
-                    GexGPT.userArr.add(user);
-                    System.out.println("[MessageListener] Added user "+user[0]+" to AI context array.");
+                boolean isRegularChannel = threadChannel.equals("Optional.empty");
+                boolean threadExists =  (GexGPT.getIndex(GexGPT.channelThreadArr, threadChannel) != -1);
+                boolean userExists =    (GexGPT.getIndex(GexGPT.userArr, userID) != -1);
+                String[] item = {"", "", ""};
+                if(!(isRegularChannel || threadExists)) {
+                    item[0] = threadChannel;
+                    GexGPT.channelThreadArr.add(item);
+                    System.out.printf("\n[MessageListener] Added thread %s to AI context array.", item[0]);
+                } else if(!(userExists)) {
+                    item[0] = userID;
+                    GexGPT.userArr.add(item);
+                    System.out.printf("\n[MessageListener] Added user %s to AI context array.", item[0]);
                 }
-                if( (GexGPT.getIndex(GexGPT.channelThreadArr, threadChannel) == -1) && !(threadChannel.equals("Optional.empty")) ) {
-                    String[] thread = { threadChannel, "", "" };
-                    GexGPT.channelThreadArr.add(thread);
-                    System.out.println("[MessageListener] Added thread "+thread[0]+" to AI context array.");
-                }
-                GexGPT.replyQueue.add(event);
 
+                GexGPT.replyQueue.add(event);
                 if(GexGPT.replyQueue.size() == 1) {
-                    System.out.println("[MessageListener] Starting new GexGPT thread.");
-                    thread = (new Thread(new GexGPT()));
+                    System.out.println("\n[MessageListener] Starting new GexGPT thread.");
+                    thread = new Thread(new GexGPT());
                     thread.start();
                 }
             }
@@ -106,7 +111,7 @@ public class MessageListener implements MessageCreateListener {
                 event.addReactionToMessage("GexSmirk:1154237747544997930");
             }
             else if(msgCaps.contains("GEX") || msgCaps.contains(selfPing)) {
-                channel.sendMessage( "<@" + (msgAuthor.getIdAsString())+"> " + GexCommands.reply());
+                channel.sendMessage( String.format("<@%s> %s", userID, GexCommands.reply()) );
             }
             else if(msgCaps.contains("CRAZY")) {
                 channel.sendMessage( "Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. Rats make me crazy.");

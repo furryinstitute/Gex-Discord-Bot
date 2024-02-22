@@ -110,20 +110,21 @@ public class GexGPT implements Runnable {
             if( message.length() > 45) { endBound = 45; }
             else { endBound = message.length(); }
             message = message.substring(0, endBound);
-            result+= message+"\n";
+            result += message+"\n";
         }
         return result;
     }
 
     public static void clearContext(String userID, String thread) {
-        int index;
-        if(getIndex(channelThreadArr, thread) == -1) {
+        int index = getIndex(channelThreadArr, thread);
+        if(index != -1) {
+            channelThreadArr.remove(index);
+            System.out.println("\n[GexGPT] Cleared context for thread "+thread+".");
+        } else {
             index = getIndex(userArr, userID);
             if(index != -1)
                 userArr.remove(index);
-        } else {
-            index = getIndex(channelThreadArr, thread);
-            channelThreadArr.remove(index);
+                System.out.println("\n[GexGPT] Cleared context for user "+userID+".");
         }
     }
 }

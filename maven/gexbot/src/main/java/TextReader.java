@@ -14,8 +14,8 @@ public class TextReader {
                     fileArr.add(line);
 
             br.close();
-            System.out.println("[TextReader] File \""+file+"\" successfully read.");
-        } catch (Exception e) { System.out.println("[TextReader] ERROR! Could not read file \""+file+"\""); }
+            System.out.printf("%n[TextReader] File \"%s\" successfully read.%n", file);
+        } catch (Exception e) { System.out.printf("%n[TextReader] ERROR! Could not read file \"%s\"%n", file); }
         return fileArr;
     }
 
@@ -26,8 +26,8 @@ public class TextReader {
             BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
             line = br.readLine();
             br.close();
-            System.out.println("[TextReader] File \""+file+"\" successfully read.");
-        } catch (Exception e) { System.out.println("[TextReader] ERROR! Could not read file \""+file+"\""); }
+            System.out.printf("%n[TextReader] File \"%s\" successfully read.%n", file);
+        } catch (Exception e) { System.out.printf("%n[TextReader] ERROR! Could not read file \"%s\"%n", file); }
         return line;
     }
 }

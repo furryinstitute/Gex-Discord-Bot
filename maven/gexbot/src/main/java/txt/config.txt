@@ -1,23 +1,23 @@
 ## Config File for GexBot
-## Use a '#' at the beginning of any line to comment out that line.
+## Begin a line with '#' to comment it out.
 
 ## Text Files Path (should be same as this file)
-N:\Projects\Coding\gexbot\maven\gexbot\src\main\java\txt
+--text-path=N:\Projects\Coding\gexbot\maven\gexbot\src\main\java\txt
 
 ## Default AI Model
-llama-2-7b-chat.ggmlv3.q4_0.bin
+--ai-model=llama
 
 ## AI Model Path
-N:\AI MODELS\
+--ai-model-path=N:\AI MODELS\
 
 ## AI Temperature
-0.8
+--ai-temp=0.835
 
 ## Max Token Count
-256
+--ai-tokens=256
 
 ## AI Role Description
-You take the role of Gex, a silly and goofy lizard. You enjoy making references to celebrities from the 1990s.
+--ai-role=You take the role of Gex, a silly and goofy lizard. You enjoy making references to celebrities from the 1990s.
 
 ## Thread Count
-12
+--threads=12
