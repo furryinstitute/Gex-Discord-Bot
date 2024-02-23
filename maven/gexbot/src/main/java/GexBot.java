@@ -15,7 +15,7 @@ public class GexBot {
     final static String MENTION_FILE =  "mentions.txt";
     final static String CONFIG_FILE =   "config.txt";
     final static String ADMIN_USER =    "bread.java"; // Your Discord handle
-    final static String VERSION =       "v0.6.1";
+    final static String VERSION =       "v0.6.1a";
     final static String ARG_PREFIX =    "--";
     final static String ARG_DELIM =     "=";
     final static int    CHAT_TIME_THRESHOLD = 15000; // milliseconds
@@ -41,10 +41,10 @@ public class GexBot {
     };
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
-    final static Scanner     stdin =             new Scanner(System.in);
-    static ArrayList<String> nameFileArr =       new ArrayList<String>();
-    static ArrayList<String> sentenceFileArr =   new ArrayList<String>();
-    static ArrayList<String> mentionFileArr =    new ArrayList<String>();
+    final static Scanner     stdin =           new Scanner(System.in);
+    static ArrayList<String> nameFileArr =     new ArrayList<String>();
+    static ArrayList<String> sentenceFileArr = new ArrayList<String>();
+    static ArrayList<String> mentionFileArr =  new ArrayList<String>();
     static String            AI_MODEL_PATH, AI_ROLE, AI_MODEL, TOKEN, USERID, TEXT_PATH, BOT_STATUS;
     static String            PREFIX = "!";
     static int               THREAD_COUNT, AI_TOKEN_COUNT = 0;
@@ -114,12 +114,12 @@ public class GexBot {
         String[] fileConfig = convertToArray(configFileArr);
 
         // For each variable, checks for command line argument, then a value in config file, and if neither, then prompt the user.
-        AI_MODEL =        convertModelName(  argExists(args, a[1]) ? getArg(args, a[1]) : argExists(fileConfig, a[1]) ? getArg(fileConfig, a[1]) : setModel());
-        AI_MODEL_PATH =   formatPath(        argExists(args, a[2]) ? getArg(args, a[2]) : argExists(fileConfig, a[2]) ? getArg(fileConfig, a[2]) : setPath(prompts[1]));
-        AI_TEMP =         Double.parseDouble(argExists(args, a[3]) ? getArg(args, a[3]) : argExists(fileConfig, a[3]) ? getArg(fileConfig, a[3]) : set(prompts[2], "temp"));
-        AI_TOKEN_COUNT =  Integer.parseInt(  argExists(args, a[4]) ? getArg(args, a[4]) : argExists(fileConfig, a[4]) ? getArg(fileConfig, a[4]) : set(prompts[3], "tokens"));
-        AI_ROLE =                            argExists(args, a[5]) ? getArg(args, a[5]) : argExists(fileConfig, a[5]) ? getArg(fileConfig, a[5]) : set(prompts[4], "role");
-        THREAD_COUNT =    Integer.parseInt(  argExists(args, a[6]) ? getArg(args, a[6]) : argExists(fileConfig, a[6]) ? getArg(fileConfig, a[6]) : set(prompts[5], "threads"));
+        AI_MODEL =        convertModelName(  argExists(args, a[1]) && check(getArg(args, a[1]), a[1]) ? getArg(args, a[1]) : argExists(fileConfig, a[1]) && check(getArg(fileConfig, a[1]), a[1]) ? getArg(fileConfig, a[1]) : setModel());
+        AI_MODEL_PATH =   formatPath(        argExists(args, a[2]) && check(getArg(args, a[2]), a[2]) ? getArg(args, a[2]) : argExists(fileConfig, a[2]) && check(getArg(fileConfig, a[2]), a[2]) ? getArg(fileConfig, a[2]) : setPath(prompts[1]));
+        AI_TEMP =         Double.parseDouble(argExists(args, a[3]) && check(getArg(args, a[3]), a[3]) ? getArg(args, a[3]) : argExists(fileConfig, a[3]) && check(getArg(fileConfig, a[3]), a[3]) ? getArg(fileConfig, a[3]) : set(prompts[2], a[3]));
+        AI_TOKEN_COUNT =  Integer.parseInt(  argExists(args, a[4]) && check(getArg(args, a[4]), a[4]) ? getArg(args, a[4]) : argExists(fileConfig, a[4]) && check(getArg(fileConfig, a[4]), a[4]) ? getArg(fileConfig, a[4]) : set(prompts[3], a[4]));
+        AI_ROLE =                            argExists(args, a[5]) && check(getArg(args, a[5]), a[5]) ? getArg(args, a[5]) : argExists(fileConfig, a[5]) && check(getArg(fileConfig, a[5]), a[5]) ? getArg(fileConfig, a[5]) : set(prompts[4], a[5]);
+        THREAD_COUNT =    Integer.parseInt(  argExists(args, a[6]) && check(getArg(args, a[6]), a[6]) ? getArg(args, a[6]) : argExists(fileConfig, a[6]) && check(getArg(fileConfig, a[6]), a[6]) ? getArg(fileConfig, a[6]) : set(prompts[5], a[6]));
         BOT_STATUS =                         argExists(args, a[7]) ? getArg(args, a[7]) : "";
         TOKEN =           TextReader.readLine (TEXT_PATH+TOKEN_FILE);
         USERID =          TextReader.readLine (TEXT_PATH+USERID_FILE);
@@ -134,39 +134,47 @@ public class GexBot {
     static String setPath (String prompt) {
         System.out.printf(prompt);
         final String input = formatPath(stdin.nextLine());
-        if (pathExists(input)) return input;
-        else {
-            System.out.printf("%n[GexBot] ERROR! Could not find folder. Try again.");
-            return setPath(prompt);
-        }
+        return pathExists(input) ? input : setPath(prompt);
     }
     static String setModel () {
         System.out.printf("%nEnter an AI chat model to use. Options include:%n");
         for (int i = 0; i < models.length; i += 2)
             System.out.printf(" - %s%n", models[i]);
         System.out.print(" > ");
+
         final String name = convertModelName(stdin.nextLine());
         return (name.equals("")) ? setModel() : name;
     }
     static String set (String prompt, String setting) {
+        System.out.printf(prompt);
+        final String input = stdin.nextLine();
+        return check(input, setting) ? input : set(prompt, setting);
+    }
+    // Checks to see if given input is valid for its applicable setting. True if in-range, false if out.
+    static boolean check (String input, String setting) {
         try {
-            System.out.printf(prompt);
-            final String input = stdin.nextLine();
+            final int a;
+            final double b;
+            final boolean inRange;
+
             switch (setting) {
-            case "threads" :
-                int a = Integer.parseInt(input);
-                return (a <= 0 || a > CPUS) ? set(prompt, setting) : input;
-            case "tokens" :
-                int b = Integer.parseInt(input);
-                return (b <= 0 || b > 4096) ? set(prompt, setting) : input;
-            case "temp" :
-                double c = Double.parseDouble(input);
-                return (c <= 0 || c > 2) ? set(prompt, setting) : input;
-            case "role" :
-                return (input.length() <= 1) ? set(prompt, setting) : input;
+                case "threads" :
+                    inRange = ((a = Integer.parseInt(input)) > 0 && a <= CPUS);
+                    break;
+                case "ai-tokens" :
+                    inRange = ((a = Integer.parseInt(input)) > 0 && a <= 4096);
+                    break;
+                case "ai-temp" :
+                    inRange = ((b = Double.parseDouble(input)) > 0 && b <= 2);
+                    break;
+                case "ai-role" :
+                    inRange = (input.length() > 0);
+                    break;
+                default : inRange = true;
             }
-        } catch (Exception e) { }
-        return set(prompt, setting);
+            if (!inRange) System.out.printf("%n[GexBot] Setting given for %s is invalid. Please enter a valid value.", setting);
+            return inRange;
+        } catch (Exception e) { return false; }
     }
 
     // Returns filename of both AI model name and filename.
