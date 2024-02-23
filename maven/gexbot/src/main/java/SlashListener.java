@@ -26,13 +26,6 @@ public class SlashListener implements SlashCommandCreateListener {
                     .setTts(false)
                 .respond();
                 break;
-        // CONTEXT COMMAND IS BROKEN
-            /*case "CONTEXT" :
-                reply
-                    .setContent(GexCommands.context(event.getInteraction().getUser().getIdAsString()))
-                    .setTts(true)
-                .respond();
-                break;*/
             case "STATS" :
                 reply
                     .addEmbed(GexCommands.stats())
@@ -40,22 +33,20 @@ public class SlashListener implements SlashCommandCreateListener {
                 .respond();
                 break;
             case "SHUTDOWN" :
-                if(isAdmin) {
-                    reply
-                        .setContent("Bye bye!")
-                        .setTts(false)
-                    .respond();
-                    GexCommands.shutdown();
-                }
+                if (!isAdmin) break;
+                reply
+                    .setContent("Bye bye!")
+                    .setTts(false)
+                .respond();
+                GexCommands.shutdown();
                 break;
             case "RESTART" :
-                if(isAdmin) {
-                    reply
-                        .setContent("I always come back.")
-                        .setTts(false)
-                    .respond();
-                    GexCommands.restart();
-                }
+                if (!isAdmin) break;
+                reply
+                    .setContent("I always come back.")
+                    .setTts(false)
+                .respond();
+                GexCommands.restart();
                 break;
         }
     }

@@ -4,10 +4,11 @@ import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 public class GexCommands {
 
-    static int countQuip, countAIReply, countGex = 0;
+    private static int countQuip, countGex;
+    static int countAIReply;
 
-    public static EmbedBuilder stats() {
-        EmbedBuilder embed = new EmbedBuilder();
+    public static EmbedBuilder stats () {
+        final EmbedBuilder embed = new EmbedBuilder();
         // Calculates elapsed runtime
         long days, hours, minutes, seconds;
         seconds = (System.currentTimeMillis()-MessageListener.firstTime) / 1000;
@@ -21,8 +22,8 @@ public class GexCommands {
         // Calculates memory usage
         com.sun.management.OperatingSystemMXBean os = (com.sun.management.OperatingSystemMXBean)
         java.lang.management.ManagementFactory.getOperatingSystemMXBean();
-        double totalMemGB = (double)os.getTotalPhysicalMemorySize() / 1073741824;
-        double usedMemGB = (double)Runtime.getRuntime().maxMemory() / 1073741824;
+        final double totalMemGB = (double)os.getTotalPhysicalMemorySize() / 1073741824;
+        final double usedMemGB = (double)Runtime.getRuntime().maxMemory() / 1073741824;
 
         String memoryText = String.format("%4.2f", usedMemGB)+" GB / "+String.format("%4.2f", totalMemGB)+" GB";
         String memoryBar = "";
@@ -47,11 +48,11 @@ public class GexCommands {
             .addField("System Memory Usage", memoryBar+"\n"+memoryText)
             .setFooter("\"It's tail time!\" - Gexy")
         ;
-        return(embed);
+        return embed;
     }
 
-    public static EmbedBuilder model() {
-        EmbedBuilder embed = new EmbedBuilder();
+    public static EmbedBuilder model () {
+        final EmbedBuilder embed = new EmbedBuilder();
         embed
             .setTitle("AI Chat Model List")
             .setColor(Color.GREEN)
@@ -61,14 +62,14 @@ public class GexCommands {
         return embed;
     }
 
-    public static EmbedBuilder queue() {
-        EmbedBuilder embed = new EmbedBuilder();
+    public static EmbedBuilder queue () {
+        final EmbedBuilder embed = new EmbedBuilder();
         embed
             .setTitle("Upcoming messages in my AI Chat Queue:")
             .setColor(Color.GREEN)
         ;
 
-        if(GexGPT.replyQueue.size() == 0) { embed.addField("", "There are no prompts for me to answer!"); }
+        if (GexGPT.replyQueue.size() == 0) { embed.addField("", "There are no prompts for me to answer!"); }
         else {
             int num;
             String indexes = "";
@@ -93,7 +94,7 @@ public class GexCommands {
         } else {
             GexBot.AI_MODEL = temp;
             GexGPT.loadModel();
-            System.out.println("\n[GexCommands] AI chat model successfully changed to \""+msg+"\".");
+            System.out.printf("%n[GexCommands] AI chat model successfully changed to \""+msg+"\".");
             return "AI chat model successfully changed to "+msg+"!";
         }
     }
@@ -115,14 +116,14 @@ public class GexCommands {
         return result;
     }
 
-    public static String time() {
+    public static String time () {
         return "It's tail time! <:GexSmirk:1154237747544997930>";
     }
 
-    public static String reply() {
-        double random = Math.random() * GexBot.mentionFileArr.size();
+    public static String reply () {
+        final double random = Math.random() * GexBot.mentionFileArr.size();
         countGex++;
-        return (GexBot.mentionFileArr.get((int)random));
+        return GexBot.mentionFileArr.get((int)random);
     }
 
     public static String context(String userID, String thread) {
@@ -132,51 +133,46 @@ public class GexCommands {
         GexGPT.clearContext(userID, thread);
         String print, ret;
         print = ret = "";
-        if(GexGPT.getIndex(GexGPT.userArr, userID) != -1) {
-            print += "\n[GexCommands] AI context for user "+userID+" has been cleared.\n";
-            ret += "AI context for <@"+userID+"> is cleared!";
-        } 
-        if(GexGPT.getIndex(GexGPT.channelThreadArr, thread) != -1) {
-            print += "\n[GexCommands] AI context for thread "+thread+" has been cleared.";
-            ret += "AI context for thread "+thread+" is cleared!";
-        }
+        final boolean userExists = GexGPT.getIndex(GexGPT.userArr, userID) != -1;
+        final boolean threadExists = GexGPT.getIndex(GexGPT.channelThreadArr, thread) != -1;
+        print += userExists ? "%n[GexCommands] AI context for user "+userID+" has been cleared.%n" : threadExists ? "%n[GexCommands] AI context for thread "+thread+" has been cleared." : "";
+        ret +=   userExists ? "AI context for <@"+userID+"> is cleared!" : threadExists ? "AI context for thread "+thread+" is cleared!" : "";
 
         System.out.println(print);
         return ret;
     }
 
-    public static String temp(String msg) {
-        double num = Double.parseDouble(msg);
-        if(num > 2 || num < 0)
-            return "That number is outside my temp range! Try again between 0 and 2.";
-        else {
+    public static String temp (String msg) {
+        final double num = Double.parseDouble(msg);
+        final boolean outRange = (num > 2 || num < 0);
+        if (outRange) {
             GexBot.AI_TEMP = num;
             GexGPT.loadModel();
-            return "Temperature changed to "+num+"!";
         }
+        return outRange ? "That number is outside my temp range! Try again between 0 and 2." : "Temperature changed to "+num+"!";
     }
 
-    public static String status(String msg) {
+    public static String status (String msg) {
         GexBot.api.updateActivity( ActivityType.PLAYING, msg);
         System.out.printf("\n[GexCommands] Activity status changed to \"%s\".", msg);
         return "Status successfully changed! <:GexSmirk:1154237747544997930>";
     }
 
-    public static String prefix(String msg) {
-            GexBot.PREFIX = msg.substring(0, 1);
-            System.out.println("\n[MessageListener] Command prefix changed to "+GexBot.PREFIX+".");
-            return "Changed command prefix to "+GexBot.PREFIX+".";
+    public static String prefix (String msg) {
+        GexBot.PREFIX = msg.substring(0, 1);
+        System.out.printf("%n[MessageListener] Command prefix changed to "+GexBot.PREFIX+".");
+        return "Changed command prefix to "+GexBot.PREFIX+".";
     }
 
-    public static void shutdown() {
-        System.out.println("\n[GexCommands] Requested shutdown by admin...");
+    public static void shutdown () {
+        System.out.printf("%n[GexCommands] Requested shutdown by admin...");
         waitForQueue();
         //System.out.println("\n[GexCommands] AI replies are still being generated! Waiting for replies to finish before shutting down.");
         System.exit(0);
     }
 
-    public static void restart() {
-        System.out.println("\n[GexCommands] Requested intentional exception by admin...");
+    public static void restart () {
+        System.out.printf("%n[GexCommands] Requested intentional exception by admin...");
         waitForQueue();
         System.exit(1);
     }
