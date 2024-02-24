@@ -1,10 +1,12 @@
 import java.awt.Color;
+import java.util.Random;
 import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 
 public class GexCommands {
 
     private static int countQuip, countGex;
+    private static Random r = new Random();
     static int countAIReply;
 
     public static EmbedBuilder stats () {
@@ -36,7 +38,8 @@ public class GexCommands {
 
         // Builds stats embed page
         embed
-            .setAuthor("GexBot "+GexBot.VERSION, "http://github.com/burntbread007/GexBot/", "https://cdn.discordapp.com/avatars/1154245369488756778/cc6e4baf92995a63317c1dad9e265d23.webp")
+            .setAuthor("GexBot "+GexBot.VERSION, "https://github.com/furryinstitute/Gex-Discord-Bot",
+                       "https://cdn.discordapp.com/avatars/1154245369488756778/cc6e4baf92995a63317c1dad9e265d23.webp")
             .setTitle("Global Statistics")
             .setColor(Color.GREEN)
             .addField("Total Messages Written:", "")
@@ -57,7 +60,7 @@ public class GexCommands {
             .setTitle("AI Chat Model List")
             .setColor(Color.GREEN)
             .addField("", "\n- Falcon\n- Wizard\n- Llama\n- Hermes\n- Uncensored")
-            .addField("Type \""+GexBot.PREFIX+"model NAME\" to change the model.", "")
+            .addField("Type \""+GexBot.PREFIX+"model NAME\" to change the model.", "Current Model: "+GexBot.AI_MODEL)
         ;
         return embed;
     }
@@ -89,29 +92,33 @@ public class GexCommands {
     public static String model(String command, String msg) {
         String temp = GexBot.convertModelName(msg);
         if(temp.equals("")) {
-            System.out.printf("\n[GexCommands] AI chat model could not be changed to \"%s\".", msg);
+            System.out.printf("%n[GexCommands] AI chat model could not be changed to \"%s\".", msg);
             return "AI chat model could not be changed to "+msg+"!";
         } else {
             GexBot.AI_MODEL = temp;
             GexGPT.loadModel();
-            System.out.printf("%n[GexCommands] AI chat model successfully changed to \""+msg+"\".");
+            System.out.printf("%n[GexCommands] AI chat model successfully changed to \"%s\".", msg);
             return "AI chat model successfully changed to "+msg+"!";
         }
     }
 
     public static String quip() {
         String sentence, name, result;
-        int splice;
-        double random;
+        int splice, random;
 
-        random = Math.random() * GexBot.sentenceFileArr.size();
-        sentence = GexBot.sentenceFileArr.get((int)random);
-        splice = sentence.indexOf("_");
+        random = r.nextInt(GexBot.sentenceFileArr.size());
+        sentence = GexBot.sentenceFileArr.get(random);
+        random = r.nextInt(GexBot.nameFileArr.size());
+        name = GexBot.nameFileArr.get(random);
 
-        random = Math.random() * GexBot.nameFileArr.size();
-        name = GexBot.nameFileArr.get((int)random);
+        result = "";
+        while (sentence.contains("_")) {
+            splice = sentence.indexOf("_");
+            result += sentence.substring(0, splice) + name;
+            sentence = sentence.substring(splice+1);
+        }
+        result += sentence;
 
-        result = sentence.substring(0, splice) + name + sentence.substring(splice+1);
         countQuip++;
         return result;
     }
@@ -121,35 +128,30 @@ public class GexCommands {
     }
 
     public static String reply () {
-        final double random = Math.random() * GexBot.mentionFileArr.size();
         countGex++;
-        return GexBot.mentionFileArr.get((int)random);
+        return GexBot.mentionFileArr.get(r.nextInt(GexBot.mentionFileArr.size()));
     }
 
     public static String context(String userID, String thread) {
-        System.out.printf("\n[GexCommands] Request received to clear AI context from user %s.", userID);
-        waitForQueue();
+        System.out.printf("%n[GexCommands] Request received to clear AI context from user %s.%n", userID);
+        waitForQueue(true);
 
         GexGPT.clearContext(userID, thread);
-        String print, ret;
-        print = ret = "";
         final boolean userExists = GexGPT.getIndex(GexGPT.userArr, userID) != -1;
         final boolean threadExists = GexGPT.getIndex(GexGPT.channelThreadArr, thread) != -1;
-        print += userExists ? "%n[GexCommands] AI context for user "+userID+" has been cleared.%n" : threadExists ? "%n[GexCommands] AI context for thread "+thread+" has been cleared." : "";
-        ret +=   userExists ? "AI context for <@"+userID+"> is cleared!" : threadExists ? "AI context for thread "+thread+" is cleared!" : "";
-
+        String print = userExists ? "\n[GexCommands] AI context for user "+userID+" has been cleared.\n" : threadExists ? "\n[GexCommands] AI context for thread "+thread+" has been cleared." : "";
         System.out.println(print);
-        return ret;
+        return userExists ? "AI context for <@"+userID+"> is cleared!" : threadExists ? "AI context for thread "+thread+" is cleared!" : "ermm";
     }
 
     public static String temp (String msg) {
-        final double num = Double.parseDouble(msg);
-        final boolean outRange = (num > 2 || num < 0);
-        if (outRange) {
-            GexBot.AI_TEMP = num;
+        final boolean inRange = GexBot.check(msg, "ai-temp");
+        if (inRange) {
+            GexBot.AI_TEMP = Double.parseDouble(msg);
             GexGPT.loadModel();
         }
-        return outRange ? "That number is outside my temp range! Try again between 0 and 2." : "Temperature changed to "+num+"!";
+        return inRange ?
+        "Temperature changed to "+msg+"!" : "That number is outside my temp range! Try again between 0 and 2.";
     }
 
     public static String status (String msg) {
@@ -165,23 +167,23 @@ public class GexCommands {
     }
 
     public static void shutdown () {
-        System.out.printf("%n[GexCommands] Requested shutdown by admin...");
-        waitForQueue();
-        //System.out.println("\n[GexCommands] AI replies are still being generated! Waiting for replies to finish before shutting down.");
+        System.out.printf("%n[GexCommands] Requested shutdown by admin...%n");
+        waitForQueue(true);
         System.exit(0);
     }
 
     public static void restart () {
-        System.out.printf("%n[GexCommands] Requested intentional exception by admin...");
-        waitForQueue();
+        System.out.printf("%n[GexCommands] Requested intentional exception by admin...%n");
+        waitForQueue(true);
         System.exit(1);
     }
 
-    public static void waitForQueue() {
+    public static void waitForQueue(final boolean warn) {
         if(GexGPT.replyQueue.size() > 0) {
+            if(warn) System.out.printf("%n[GexCommands] AI replies are still being generated! Waiting for replies to finish before shutting down.%n");
             try { Thread.sleep(1000); }
             catch (Exception e) {}
-            waitForQueue();
+            waitForQueue(false);
         }
     }
 }

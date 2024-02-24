@@ -1,0 +1,23 @@
+## Config File for GexBot
+## Begin a line with '#' to comment it out.
+
+## Text Files Path (should be same as this file)
+--text-path=N:\Projects\Coding\gexbot\maven\gexbot\src\main\java\txt
+
+## Default AI Model
+--ai-model=llama
+
+## AI Model Path
+--ai-model-path=N:\AI MODELS\
+
+## AI Temperature
+--ai-temp=0.835
+
+## Max Token Count
+--ai-tokens=256
+
+## AI Role Description
+--ai-role=You take the role of Gex, a silly and goofy lizard. You enjoy making references to celebrities from the 1990s.
+
+## Thread Count
+--threads=12
