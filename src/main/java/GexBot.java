@@ -18,7 +18,7 @@ public class GexBot {
     final static String VERSION =       "v0.6.1a";
     final static String ARG_PREFIX =    "--";
     final static String ARG_DELIM =     "=";
-    final static int    CHAT_TIME_THRESHOLD = 15000; // milliseconds
+    final static int    CHAT_TIME_THRESHOLD = 15000; // Milliseconds
     final static int    CHAT_COUNT_THRESHOLD = 7; // # of messages
     final static int    CPUS = Runtime.getRuntime().availableProcessors();
     // Default model name to file name list; add your own if needed.
@@ -41,10 +41,11 @@ public class GexBot {
     };
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
-    final static Scanner     stdin =           new Scanner(System.in);
-    static ArrayList<String> nameFileArr =     new ArrayList<String>();
-    static ArrayList<String> sentenceFileArr = new ArrayList<String>();
-    static ArrayList<String> mentionFileArr =  new ArrayList<String>();
+    final static Scanner        stdin =                 new Scanner(System.in);
+    static ArrayList<String>    nameFileArr =     new ArrayList<String>();
+    static ArrayList<String>    sentenceFileArr = new ArrayList<String>();
+    static ArrayList<String>    mentionFileArr =  new ArrayList<String>();
+    static ArrayList<TimerTask> reminderArr =     new ArrayList<TimerTask>();
     static String            AI_MODEL_PATH, AI_ROLE, AI_MODEL, TOKEN, USERID, TEXT_PATH, BOT_STATUS;
     static String            PREFIX = "!";
     static int               THREAD_COUNT, AI_TOKEN_COUNT = 0;
@@ -71,7 +72,7 @@ public class GexBot {
         System.out.println(  "================================");
 
         // BOT STATUS ACTIVITY SET
-        api.updateActivity(ActivityType.PLAYING , BOT_STATUS);
+        api.updateActivity(ActivityType.PLAYING, BOT_STATUS);
 
         // SLASH COMMAND LIST
 
@@ -131,7 +132,7 @@ public class GexBot {
     }
 
     // Each setX() method prompts user for each needed value.
-    static String setPath (String prompt) {
+    static String setPath (final String prompt) {
         System.out.printf(prompt);
         final String input = formatPath(stdin.nextLine());
         return pathExists(input) ? input : setPath(prompt);
@@ -145,13 +146,13 @@ public class GexBot {
         final String name = convertModelName(stdin.nextLine());
         return (name.equals("")) ? setModel() : name;
     }
-    static String set (String prompt, String setting) {
+    static String set (final String prompt, final String setting) {
         System.out.printf(prompt);
         final String input = stdin.nextLine();
         return check(input, setting) ? input : set(prompt, setting);
     }
     // Checks to see if given input is valid for its applicable setting. True if in-range, false if out.
-    static boolean check (String input, String setting) {
+    static boolean check (final String input, final String setting) {
         try {
             final int a;
             final double b;
@@ -178,7 +179,7 @@ public class GexBot {
     }
 
     // Returns filename of both AI model name and filename.
-    static String convertModelName(final String name) {
+    static String convertModelName (final String name) {
         for (int i = 0; i < models.length; i += 2)
             if (name.equalsIgnoreCase(models[i]))
                 return models[i+1];
@@ -200,7 +201,7 @@ public class GexBot {
                 return i.substring(i.indexOf(ARG_DELIM)+1);
         return "";
     }
-    static boolean pathExists (String input) {
+    static boolean pathExists (final String input) {
         try {
             FileInputStream pathExistCheck = new FileInputStream(input+AI_MODEL);
             pathExistCheck.close();
@@ -215,7 +216,7 @@ public class GexBot {
         return path;
     }
     // Converts ArrayList<String> to String[].
-    static String[] convertToArray(final ArrayList<String> arrList) {
+    static String[] convertToArray (final ArrayList<String> arrList) {
         final String[] ret = new String[arrList.size()];
         for (int i = 0; i < ret.length; i++)
             ret[i] = arrList.get(i);
