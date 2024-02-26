@@ -1,0 +1,24 @@
+## Config File for GexBot
+## Begin a line with '#' to comment it out.
+
+## Text Files Path
+## This path must also include this file!
+--text-path=PATH_TO_TEXT_FILES
+
+## Default AI Model
+--ai-model=MODEL_NAME
+
+## AI Model Path
+--ai-model-path=PATH_TO_AI_MODEL_FILES
+
+## AI Temperature
+--ai-temp=NUMBER_0-2
+
+## Max Token Count
+--ai-tokens=#_OF_THREADS
+
+## AI Role Description
+--ai-role=You take the role of Gex, a silly and goofy lizard. You enjoy making references to celebrities from the 1990s.
+
+## Thread Count
+--threads=#_OF_CPU_THREADS
