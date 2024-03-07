@@ -34,3 +34,4 @@ target/classes/*.class
 src/main/java/txt/config.txt
 src/main/java/txt/TOKEN.txt
 src/main/java/txt/USERID.txt
+target/classes/META-INF/MANIFEST.MF

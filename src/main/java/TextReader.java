@@ -1,3 +1,9 @@
+/*
+ * @author furryinstitute, BurntBread007
+ * @repo GexBot for Discord
+ * @version 0.6.2a
+ */
+
 import java.io.FileInputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -5,14 +11,14 @@ import java.util.ArrayList;
 
 public class TextReader {
 
-    public static ArrayList<String> readLines(String file, ArrayList<String> fileArr) {
+    public static ArrayList<String> readLines (final String file, ArrayList<String> fileArr) {
         try {
-            FileInputStream fstream = new FileInputStream(file);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+            final FileInputStream fstream = new FileInputStream(file);
+            final BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 
             String line;
-            while((line = br.readLine()) != null)
-                if( (!line.startsWith("#")) && (!line.isEmpty()) )
+            while ((line = br.readLine()) != null)
+                if ( (!line.startsWith("#")) && (!line.isEmpty()) )
                     fileArr.add(line);
 
             br.close();
@@ -21,15 +27,15 @@ public class TextReader {
         return fileArr;
     }
 
-    public static String readLine(String file) {
-        String line = "";
+    public static String readLine (final String file) {
         try {
-            FileInputStream fstream = new FileInputStream(file);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-            line = br.readLine();
-            br.close();
+            final FileInputStream fstream = new FileInputStream(file);
+            final BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
             System.out.printf("%n[TextReader] File \"%s\" successfully read.%n", file);
-        } catch (Exception e) { System.out.printf("%n[TextReader] ERROR! Could not read file \"%s\"%n", file); }
-        return line;
+            return br.readLine();
+        } catch (Exception e) {
+            System.out.printf("%n[TextReader] ERROR! Could not read file \"%s\"%n", file);
+            return "";
+        }
     }
 }

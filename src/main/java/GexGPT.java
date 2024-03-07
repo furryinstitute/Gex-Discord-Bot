@@ -1,3 +1,9 @@
+/*
+ * @author furryinstitute, BurntBread007
+ * @repo GexBot for Discord
+ * @version 0.6.2a
+ */
+
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +16,10 @@ public class GexGPT implements Runnable {
     private static LLModel model;
     private static LLModel.GenerationConfig config;
     private static ChatCompletionResponse test;
-    static int maxReplyPrint = 5;
-    static ArrayList<String[]> userArr = new ArrayList<String[]>();
-    static ArrayList<MessageCreateEvent> replyQueue = new ArrayList<MessageCreateEvent>();
-    static ArrayList<String[]> channelThreadArr = new ArrayList<String[]>();
+    final static int MAX_REPLY_PRINT = 5;
+    final static ArrayList<String[]>           userArr = new ArrayList<String[]>();
+    final static ArrayList<String[]>           channelThreadArr = new ArrayList<String[]>();
+    final static ArrayList<MessageCreateEvent> replyQueue = new ArrayList<MessageCreateEvent>();
 
     public void run () {
         System.out.printf("%n[GexGPT] AI reply queue initialized.%n%n");
@@ -23,11 +29,9 @@ public class GexGPT implements Runnable {
             String userID = event.getMessageAuthor().getIdAsString();
             String username = event.getMessageAuthor().getDisplayName();
             String thread = event.getChannel().asServerThreadChannel().toString();
-            String result = "<@"+userID+">";
-
+            String result = String.format("<@%s>", userID);
             result += generateReply(userID, username, thread, message.substring(message.indexOf(">")+1));
 
-            event.getChannel().type();
             event.getChannel().sendMessage(result);
             replyQueue.remove(0);
         }
@@ -43,18 +47,15 @@ public class GexGPT implements Runnable {
                 .withTemp((float)GexBot.AI_TEMP)
                 .build();
         System.gc();
-        System.out.printf("%n\n[GexGPT] AI Model loaded successfully.%n%n");
+        System.out.printf("%n%n[GexGPT] AI Model loaded successfully.%n%n");
     }
 
-    public static String generateReply (String userID, String username, String thread, String prompt) {
+    public static String generateReply (final String userID, final String username, final String thread, final String prompt) {
         try {
-            String userContext, aiContext;
-            int index;
-
-            boolean       isThread = getIndex(channelThreadArr, thread) >= 0;
-            index =       isThread ? getIndex(channelThreadArr, thread) : getIndex(userArr, userID);
-            userContext = isThread ? channelThreadArr.get(index)[1]     : userArr.get(index)[1];
-            aiContext =   isThread ? channelThreadArr.get(index)[2]     : userArr.get(index)[2];
+            final boolean        isThread = getIndex(channelThreadArr, thread) >= 0;
+            final int index =    isThread ? getIndex(channelThreadArr, thread) : getIndex(userArr, userID);
+            String userContext = isThread ? channelThreadArr.get(index)[1] : userArr.get(index)[1];
+            String aiContext =   isThread ? channelThreadArr.get(index)[2] : userArr.get(index)[2];
 
             test = model.chatCompletion(
                 List.of(Map.of("role", "system", "content", GexBot.AI_ROLE),
@@ -67,11 +68,11 @@ public class GexGPT implements Runnable {
             aiContext = test.choices.toString();
             aiContext = aiContext.substring(26, aiContext.length()-2);
             
-            String[] array = new String[3];
-            array[0] = isThread ? thread : userID;
-            array[1] = userContext;
-            array[2] = aiContext;
-            
+            String[] array = {
+                isThread ? thread : userID,
+                userContext,
+                aiContext
+            };
             if (isThread) channelThreadArr.set(index, array);
             else          userArr.set(index, array);
 
@@ -83,23 +84,20 @@ public class GexGPT implements Runnable {
     }
 
     public static String printPrompts () {
-        if (replyQueue.size() == 0) { return ""; }
-        int length = (replyQueue.size() < maxReplyPrint) ? replyQueue.size() : maxReplyPrint;
+        if (replyQueue.size() == 0) return "";
         String result = "";
-        String message;
-        int endBound;
-        for(int i = 0; i < length; i++) {
-            message = replyQueue.get(i).getMessageContent();
+        int length = (replyQueue.size() < MAX_REPLY_PRINT) ? replyQueue.size() : MAX_REPLY_PRINT;
+        for (int i = 0; i < length; i++) {
+            String message = replyQueue.get(i).getMessageContent();
             message = message.substring(message.indexOf(">")+1);
 
-            endBound = message.length() > 45 ? 45 : message.length();
-            message = message.substring(0, endBound);
-            result += message+"\n";
+            int endBound = message.length() > 45 ? 45 : message.length();
+            result += message.substring(0, endBound)+"\n";
         }
         return result;
     }
 
-    public static void clearContext (String userID, String thread) {
+    public static void clearContext (final String userID, final String thread) {
         int index = getIndex(channelThreadArr, thread);
         if (index != -1) {
             channelThreadArr.remove(index);
@@ -113,7 +111,7 @@ public class GexGPT implements Runnable {
         }
     }
 
-    public static int getIndex (ArrayList<String[]> array, String id) {
+    public static int getIndex (final ArrayList<String[]> array, final String id) {
         for (int i = 0; i < array.size(); i++)
             if (array.get(i)[0].equals(id))
                 return i;

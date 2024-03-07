@@ -1,11 +1,17 @@
+/*
+ * @author furryinstitute, BurntBread007
+ * @repo GexBot for Discord
+ * @version 0.6.2a
+ */
+
 import org.javacord.api.listener.interaction.SlashCommandCreateListener;
 import org.javacord.api.event.interaction.SlashCommandCreateEvent;
 import org.javacord.api.interaction.callback.InteractionImmediateResponseBuilder;
 
 public class SlashListener implements SlashCommandCreateListener {
 
-    public void onSlashCommandCreate(SlashCommandCreateEvent event) {
-        boolean isAdmin = event.getInteraction().getUser().getName().equals(GexBot.ADMIN_USER);
+    public void onSlashCommandCreate (final SlashCommandCreateEvent event) {
+        final boolean isAdmin = event.getInteraction().getUser().getName().equals(GexBot.ADMIN_USER);
         InteractionImmediateResponseBuilder reply = event.getInteraction().createImmediateResponder();
 
         switch (event.getSlashCommandInteraction().getFullCommandName().toUpperCase()) {

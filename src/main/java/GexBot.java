@@ -1,3 +1,9 @@
+/*
+ * @author furryinstitute, BurntBread007
+ * @repo GexBot for Discord
+ * @version 0.6.2a
+ */
+
 import java.io.FileInputStream;
 import java.util.*;
 import org.javacord.api.*;
@@ -15,7 +21,7 @@ public class GexBot {
     final static String MENTION_FILE =  "mentions.txt";
     final static String CONFIG_FILE =   "config.txt";
     final static String ADMIN_USER =    "bread.java"; // Your Discord handle
-    final static String VERSION =       "v0.6.1a";
+    final static String VERSION =       "v0.6.2a";
     final static String ARG_PREFIX =    "--";
     final static String ARG_DELIM =     "=";
     final static int    CHAT_TIME_THRESHOLD = 15000; // Milliseconds
@@ -29,7 +35,7 @@ public class GexBot {
         "Hermes",     "nous-hermes-13b.ggmlv3.q4_0.bin",
         "Uncensored", "wizardLM-13B-Uncensored.ggmlv3.q4_0.bin"
     };
-    // Command names and their descriptions.
+    // Command names and their descriptions; add your own if needed.
     final static String[] commands = {
         "gex",      "Say Gex! Hear one of my newest & trendiest jokes!",
         "time",     "It's tail time!",
@@ -41,15 +47,14 @@ public class GexBot {
     };
 
     // OTHER STARTING VARIABLES, DON'T CHANGE THESE
-    final static Scanner        stdin =                 new Scanner(System.in);
-    static ArrayList<String>    nameFileArr =     new ArrayList<String>();
-    static ArrayList<String>    sentenceFileArr = new ArrayList<String>();
-    static ArrayList<String>    mentionFileArr =  new ArrayList<String>();
-    static ArrayList<TimerTask> reminderArr =     new ArrayList<TimerTask>();
-    static String            AI_MODEL_PATH, AI_ROLE, AI_MODEL, TOKEN, USERID, TEXT_PATH, BOT_STATUS;
-    static String            PREFIX = "!";
-    static int               THREAD_COUNT, AI_TOKEN_COUNT = 0;
-    static double            AI_TEMP = 0;
+    final static Scanner           stdin =           new Scanner(System.in);
+    static ArrayList<String> nameFileArr =     new ArrayList<String>();
+    static ArrayList<String> sentenceFileArr = new ArrayList<String>();
+    static ArrayList<String> mentionFileArr =  new ArrayList<String>();
+    static String AI_MODEL_PATH, AI_ROLE, AI_MODEL, TOKEN, USERID, TEXT_PATH, BOT_STATUS;
+    static String PREFIX = "!";
+    static int    THREAD_COUNT, AI_TOKEN_COUNT = 0;
+    static double AI_TEMP = 0;
     static DiscordApi api;
 
     public static void main (final String[] args) {
@@ -66,21 +71,25 @@ public class GexBot {
 
         // Print successful connection to Discord.
         System.out.println("\n================================");
-        System.out.println(  "|      GexBot For Discord      |");
-        System.out.printf ( "|     %s - Pre-Release     |%n", VERSION);
-        System.out.println(  "|  Developed by BurntBread007  |");
+        System.out.println(  "GexBot For Discord");
+        System.out.printf (  "%s - Pre-Release%n%n", VERSION);
+        System.out.println(  "Furry Institute of Technology");
+        System.out.println(  "Developed by BurntBread007");
         System.out.println(  "================================");
+        System.out.printf("%n[GexBot] Loading...%n");
 
         // BOT STATUS ACTIVITY SET
         api.updateActivity(ActivityType.PLAYING, BOT_STATUS);
 
         // SLASH COMMAND LIST
-
         for (int i = 0; i < commands.length; i += 2) {
             final SlashCommand cmd = SlashCommand.with(commands[i], commands[i+1])
             .createGlobal(api)
             .join();
         }
+        // PRE-COMPILE MODEL NAME LIST
+        for (int i = 0; i < models.length; i += 2)
+            GexCommands.modelList += String.format("- %s%n", models[i]);
 
         // DISCORD API LISTENERS
         api.addListener(new MessageListener());
@@ -115,7 +124,7 @@ public class GexBot {
         String[] fileConfig = convertToArray(configFileArr);
 
         // For each variable, checks for command line argument, then a value in config file, and if neither, then prompt the user.
-        AI_MODEL =        convertModelName(  argExists(args, a[1]) && check(getArg(args, a[1]), a[1]) ? getArg(args, a[1]) : argExists(fileConfig, a[1]) && check(getArg(fileConfig, a[1]), a[1]) ? getArg(fileConfig, a[1]) : setModel());
+        AI_MODEL =        convertModelName( (argExists(args, a[1]) && check(getArg(args, a[1]), a[1]) ? getArg(args, a[1]) : argExists(fileConfig, a[1]) && check(getArg(fileConfig, a[1]), a[1]) ? getArg(fileConfig, a[1]) : setModel()), true);
         AI_MODEL_PATH =   formatPath(        argExists(args, a[2]) && check(getArg(args, a[2]), a[2]) ? getArg(args, a[2]) : argExists(fileConfig, a[2]) && check(getArg(fileConfig, a[2]), a[2]) ? getArg(fileConfig, a[2]) : setPath(prompts[1]));
         AI_TEMP =         Double.parseDouble(argExists(args, a[3]) && check(getArg(args, a[3]), a[3]) ? getArg(args, a[3]) : argExists(fileConfig, a[3]) && check(getArg(fileConfig, a[3]), a[3]) ? getArg(fileConfig, a[3]) : set(prompts[2], a[3]));
         AI_TOKEN_COUNT =  Integer.parseInt(  argExists(args, a[4]) && check(getArg(args, a[4]), a[4]) ? getArg(args, a[4]) : argExists(fileConfig, a[4]) && check(getArg(fileConfig, a[4]), a[4]) ? getArg(fileConfig, a[4]) : set(prompts[3], a[4]));
@@ -143,7 +152,7 @@ public class GexBot {
             System.out.printf(" - %s%n", models[i]);
         System.out.print(" > ");
 
-        final String name = convertModelName(stdin.nextLine());
+        final String name = convertModelName(stdin.nextLine(), true);
         return (name.equals("")) ? setModel() : name;
     }
     static String set (final String prompt, final String setting) {
@@ -159,32 +168,39 @@ public class GexBot {
             final boolean inRange;
 
             switch (setting) {
-                case "threads" :
-                    inRange = ((a = Integer.parseInt(input)) > 0 && a <= CPUS);
-                    break;
-                case "ai-tokens" :
-                    inRange = ((a = Integer.parseInt(input)) > 0 && a <= 4096);
-                    break;
-                case "ai-temp" :
-                    inRange = ((b = Double.parseDouble(input)) > 0 && b <= 2);
-                    break;
-                case "ai-role" :
-                    inRange = (input.length() > 0);
-                    break;
-                default : inRange = true;
+            case "threads" :
+                inRange = ((a = Integer.parseInt(input)) > 0 && a <= CPUS);
+                break;
+            case "ai-tokens" :
+                inRange = ((a = Integer.parseInt(input)) > 0 && a <= 4096);
+                break;
+            case "ai-temp" :
+                inRange = ((b = Double.parseDouble(input)) > 0 && b <= 2);
+                break;
+            case "ai-role" :
+                inRange = (input.length() > 0);
+                break;
+            default : inRange = true;
             }
             if (!inRange) System.out.printf("%n[GexBot] Setting given for %s is invalid. Please enter a valid value.", setting);
             return inRange;
         } catch (Exception e) { return false; }
     }
 
-    // Returns filename of both AI model name and filename.
-    static String convertModelName (final String name) {
+    // Returns file/model name of an AI model.
+    static String convertModelName (final String name, final boolean longName) {
         for (int i = 0; i < models.length; i += 2)
-            if (name.equalsIgnoreCase(models[i]))
-                return models[i+1];
-            else if (name.equalsIgnoreCase(models[i+1]))
-                return name;
+            if (longName) {
+                if (name.equalsIgnoreCase(models[i]))
+                    return models[i+1];
+                else if (name.equalsIgnoreCase(models[i+1]))
+                    return name;
+            } else {
+                if (name.equalsIgnoreCase(models[i+1]))
+                    return models[i];
+                else if (name.equalsIgnoreCase(models[i]))
+                    return name;
+            }
         return "";
     }
 
@@ -211,8 +227,8 @@ public class GexBot {
 
     // Adjusts file location given.
     static String formatPath (final String path) {
-        if      ( path.contains("\\") && !path.endsWith("\\") ) { return path+"\\"; }
-        else if ( path.contains("/")  && !path.endsWith("/")  ) { return path+"/";  }
+        if      ( path.contains("\\") && !path.endsWith("\\") ) return path+"\\";
+        else if ( path.contains("/")  && !path.endsWith("/")  ) return path+"/";
         return path;
     }
     // Converts ArrayList<String> to String[].
