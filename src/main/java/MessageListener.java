@@ -1,7 +1,7 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.2a
+ * @version 0.6.3
  */
 
 import org.javacord.api.listener.message.MessageCreateListener;
@@ -85,19 +85,16 @@ public class MessageListener implements MessageCreateListener {
         else {
             if (command.equals(selfPing)) {
                 channel.type();
-                final boolean isRegularChannel = threadChannel.equals("Optional.empty");
-                final boolean threadExists =  (GexGPT.getIndex(GexGPT.channelThreadArr, threadChannel) != -1);
-                final boolean userExists =    (GexGPT.getIndex(GexGPT.userArr, userID) != -1);
-                String[] item = {"", "", ""};
-                if (!(isRegularChannel || threadExists)) {
-                    item[0] = threadChannel;
-                    GexGPT.channelThreadArr.add(item);
-                    System.out.printf("%n[MessageListener] Added thread %s to AI context array.%n", item[0]);
-                } else if (!(userExists)) {
-                    item[0] = userID;
-                    GexGPT.userArr.add(item);
-                    System.out.printf("%n[MessageListener] Added user %s to AI context array.%n", item[0]);
+                final boolean isThread = !threadChannel.equals("Optional.empty");
+                final String key = isThread ? threadChannel : userID;
+                final boolean contains = GexGPT.users.containsKey(key);
+
+                final String[] empty = {"", ""};
+                final String[] item = contains ? GexGPT.users.get(key) : empty;
+                if (!contains) {
+                    System.out.printf("%n[MessageListener] Adding user %s to context map.%n", key);
                 }
+                GexGPT.users.put(key, item);
 
                 GexGPT.replyQueue.add(event);
                 if (GexGPT.replyQueue.size() == 1) {

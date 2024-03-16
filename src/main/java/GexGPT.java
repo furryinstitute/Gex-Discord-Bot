@@ -1,13 +1,14 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.2a
+ * @version 0.6.3
  */
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import org.javacord.api.event.message.MessageCreateEvent;
 import com.hexadevlabs.gpt4all.LLModel;
 import com.hexadevlabs.gpt4all.LLModel.ChatCompletionResponse;
@@ -17,20 +18,20 @@ public class GexGPT implements Runnable {
     private static LLModel.GenerationConfig config;
     private static ChatCompletionResponse test;
     final static int MAX_REPLY_PRINT = 5;
-    final static ArrayList<String[]>           userArr = new ArrayList<String[]>();
-    final static ArrayList<String[]>           channelThreadArr = new ArrayList<String[]>();
+    final static HashMap<String, String[]> users = new HashMap<String, String[]>();
     final static ArrayList<MessageCreateEvent> replyQueue = new ArrayList<MessageCreateEvent>();
 
     public void run () {
         System.out.printf("%n[GexGPT] AI reply queue initialized.%n%n");
-        while(replyQueue.size() > 0) {
-            MessageCreateEvent event = replyQueue.get(0);
-            String message = event.getMessageContent();
-            String userID = event.getMessageAuthor().getIdAsString();
-            String username = event.getMessageAuthor().getDisplayName();
-            String thread = event.getChannel().asServerThreadChannel().toString();
+        while (replyQueue.size() > 0) {
+            final MessageCreateEvent event = replyQueue.get(0);
+            final String message = event.getMessageContent();
+            final String userID = event.getMessageAuthor().getIdAsString();
+            final String username = event.getMessageAuthor().getDisplayName();
+            final String threadChannel = event.getChannel().asServerThreadChannel().toString();
+            final boolean isThread = users.containsKey(threadChannel);
             String result = String.format("<@%s>", userID);
-            result += generateReply(userID, username, thread, message.substring(message.indexOf(">")+1));
+            result += generateReply((isThread ? threadChannel : userID), username, message.substring(message.indexOf(">")+1));
 
             event.getChannel().sendMessage(result);
             replyQueue.remove(0);
@@ -50,12 +51,10 @@ public class GexGPT implements Runnable {
         System.out.printf("%n%n[GexGPT] AI Model loaded successfully.%n%n");
     }
 
-    public static String generateReply (final String userID, final String username, final String thread, final String prompt) {
+    public static String generateReply (final String user, final String username, final String prompt) {
         try {
-            final boolean        isThread = getIndex(channelThreadArr, thread) >= 0;
-            final int index =    isThread ? getIndex(channelThreadArr, thread) : getIndex(userArr, userID);
-            String userContext = isThread ? channelThreadArr.get(index)[1] : userArr.get(index)[1];
-            String aiContext =   isThread ? channelThreadArr.get(index)[2] : userArr.get(index)[2];
+            String userContext = users.get(user)[0];
+            String aiContext = users.get(user)[1];
 
             test = model.chatCompletion(
                 List.of(Map.of("role", "system", "content", GexBot.AI_ROLE),
@@ -68,16 +67,11 @@ public class GexGPT implements Runnable {
             aiContext = test.choices.toString();
             aiContext = aiContext.substring(26, aiContext.length()-2);
             
-            String[] array = {
-                isThread ? thread : userID,
-                userContext,
-                aiContext
-            };
-            if (isThread) channelThreadArr.set(index, array);
-            else          userArr.set(index, array);
+            final String[] item = {userContext, aiContext};
+            users.put(user, item);
 
             GexCommands.countAIReply++;
-            return array[2];
+            return item[1];
         } catch (Exception e) {
             return "Sorry, but I don't know how to answer your statement. I'm just a goofy and silly lizard that likes to reference celebrities from the 1990s.";
         }
@@ -97,24 +91,10 @@ public class GexGPT implements Runnable {
         return result;
     }
 
-    public static void clearContext (final String userID, final String thread) {
-        int index = getIndex(channelThreadArr, thread);
-        if (index != -1) {
-            channelThreadArr.remove(index);
-            System.out.printf("%n[GexGPT] Cleared context for thread "+thread+".%n");
-        } else {
-            index = getIndex(userArr, userID);
-            if (index != -1) {
-                userArr.remove(index);
-                System.out.printf("%n[GexGPT] Cleared context for user "+userID+".%n");
-            }
+    public static void clearContext (final String user) {
+        if (users.containsKey(user)) {
+            users.remove(user);
+            System.out.printf("%n[GexGPT] Cleared context for "+user+".%n");
         }
-    }
-
-    public static int getIndex (final ArrayList<String[]> array, final String id) {
-        for (int i = 0; i < array.size(); i++)
-            if (array.get(i)[0].equals(id))
-                return i;
-        return -1;
     }
 }

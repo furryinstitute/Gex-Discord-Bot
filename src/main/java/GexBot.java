@@ -1,7 +1,7 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.2a
+ * @version 0.6.3
  */
 
 import java.io.FileInputStream;
@@ -21,7 +21,7 @@ public class GexBot {
     final static String MENTION_FILE =  "mentions.txt";
     final static String CONFIG_FILE =   "config.txt";
     final static String ADMIN_USER =    "bread.java"; // Your Discord handle
-    final static String VERSION =       "v0.6.2a";
+    final static String VERSION =       "v0.6.3";
     final static String ARG_PREFIX =    "--";
     final static String ARG_DELIM =     "=";
     final static int    CHAT_TIME_THRESHOLD = 15000; // Milliseconds
@@ -94,11 +94,6 @@ public class GexBot {
         // DISCORD API LISTENERS
         api.addListener(new MessageListener());
         api.addSlashCommandCreateListener(new SlashListener());
-        api.addServerThreadChannelCreateListener(event -> {
-            String[] threadContext = { event.getChannel().asServerThreadChannel().toString(), "", "" };
-            GexGPT.userArr.add(threadContext);
-            GexGPT.channelThreadArr.add(threadContext);
-        });
         System.out.printf("%n[GexBot] Successfully created event listeners.");
         System.out.printf("%n[GexBot] SUCCESSFULLY CONNECTED!%nYou can invite the bot by using the following URL: %n>> %s <<%n", api.createBotInvite());
     }

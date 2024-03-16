@@ -4,7 +4,7 @@
 
     <groupId>com.burntbread007</groupId>
     <artifactId>gexbot</artifactId>
-    <version>0.6.2a</version>
+    <version>0.6.3</version>
     <packaging>jar</packaging>
 
     <name>Gex Bot</name>

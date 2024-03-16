@@ -1,7 +1,7 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.2a
+ * @version 0.6.3
  */
 
 import java.awt.Color;
@@ -55,7 +55,7 @@ public class GexCommands {
             .addInlineField("Quips", countQuip+"")
             .addInlineField("AI Replies", countAIReply+"")
             .addInlineField("Gex References", countGex+"")
-            .addField("Current AI Model", GexBot.AI_MODEL)
+            .addField("Current AI Model", GexBot.convertModelName(GexBot.AI_MODEL, false))
             .addField("Elapsed Runtime", String.format("%s days, %s hours, %s minutes, %s seconds", days, hours, minutes, seconds))
             .addField("System Memory Usage", String.format("%s%n%s",memoryBar,memoryText))
             .setFooter("\"It's tail time!\" - Gexy")
@@ -132,20 +132,16 @@ public class GexCommands {
         return GexBot.mentionFileArr.get(r.nextInt(GexBot.mentionFileArr.size()));
     }
 
-    public static String context (final String userID, final String thread) {
+    public static String context (final String userID, final String threadChannel) {
         System.out.printf("%n[GexCommands] Request received to clear AI context from user %s.%n", userID);
-        waitForQueue(true);
+        waitForQueue();
+        final boolean isThread = (threadChannel.equals("Optional.empty"));
+        String user = isThread ? userID : threadChannel;
 
-        GexGPT.clearContext(userID, thread);
-        final boolean userExists = GexGPT.getIndex(GexGPT.userArr, userID) != -1;
-        final boolean threadExists = GexGPT.getIndex(GexGPT.channelThreadArr, thread) != -1;
-        String print = userExists ?
-                String.format("%n[GexCommands] AI context for user %s has been cleared.%n", userID)
-                : threadExists ?
-                String.format("%n[GexCommands] AI context for thread %s has been cleared.", thread)
-                : "ermm";
-        System.out.println(print);
-        return print;
+        GexGPT.clearContext(user);
+        final boolean exists = GexGPT.users.containsKey(user);
+        return (exists ? "Could not remove context for" : "Successfully removed context for ")
+        +(isThread ? "<@"+user+">!" : "thread "user+".");
     }
 
     public static String temp (final String msg) {
@@ -173,14 +169,18 @@ public class GexCommands {
 
     public static void shutdown () {
         System.out.printf("%n[GexCommands] Requested shutdown by admin...%n");
-        waitForQueue(true);
+        waitForQueue();
         System.exit(0);
     }
 
     public static void restart () {
         System.out.printf("%n[GexCommands] Requested intentional exception by admin...%n");
-        waitForQueue(true);
+        waitForQueue();
         System.exit(1);
+    }
+
+    public static void waitForQueue () {
+        waitForQueue(true);
     }
 
     public static void waitForQueue (final boolean warn) {

@@ -1,7 +1,7 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.2a
+ * @version 0.6.3
  */
 
 import java.util.Date;
