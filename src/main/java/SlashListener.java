@@ -1,7 +1,7 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.3
+ * @version 0.6.3a
  */
 
 import org.javacord.api.listener.interaction.SlashCommandCreateListener;
@@ -12,48 +12,30 @@ public class SlashListener implements SlashCommandCreateListener {
 
     public void onSlashCommandCreate (final SlashCommandCreateEvent event) {
         final boolean isAdmin = event.getInteraction().getUser().getName().equals(GexBot.ADMIN_USER);
-        InteractionImmediateResponseBuilder reply = event.getInteraction().createImmediateResponder();
+        final InteractionImmediateResponseBuilder reply = event.getInteraction().createImmediateResponder();
 
         switch (event.getSlashCommandInteraction().getFullCommandName().toUpperCase()) {
-            case "GEX":
-                reply
-                    .setTts(true)
-                    .respond();
-                break;
-            case "TIME" :
-                reply
-                    .setContent(GexCommands.time())
-                    .setTts(true)
+        case "GEX":
+            reply.setContent(GexCommands.quip()); break;
+        case "TIME" :
+            reply.setContent(GexCommands.time()); break;
+        case "QUEUE" :
+            reply.addEmbed(GexCommands.queue()); break;
+        case "STATS" :
+            reply.addEmbed(GexCommands.stats()); break;
+        case "SHUTDOWN" :
+            reply
+                .setContent(isAdmin ? "Bye bye!" : "No")
                 .respond();
-                break;
-            case "QUEUE" :
-                reply
-                    .addEmbed(GexCommands.queue())
-                    .setTts(false)
+            if (isAdmin) GexCommands.shutdown();
+            break;
+        case "RESTART" :
+            reply
+                .setContent(isAdmin ? "I always come back." : "No")
                 .respond();
-                break;
-            case "STATS" :
-                reply
-                    .addEmbed(GexCommands.stats())
-                    .setTts(false)
-                .respond();
-                break;
-            case "SHUTDOWN" :
-                if (!isAdmin) break;
-                reply
-                    .setContent("Bye bye!")
-                    .setTts(false)
-                .respond();
-                GexCommands.shutdown();
-                break;
-            case "RESTART" :
-                if (!isAdmin) break;
-                reply
-                    .setContent("I always come back.")
-                    .setTts(false)
-                .respond();
-                GexCommands.restart();
-                break;
+            if (isAdmin) GexCommands.restart();
+            break;
         }
+        reply.respond();
     }
 }

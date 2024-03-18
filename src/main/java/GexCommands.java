@@ -1,13 +1,11 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.3
+ * @version 0.6.3a
  */
 
 import java.awt.Color;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 import org.javacord.api.entity.activity.ActivityType;
 import org.javacord.api.entity.message.embed.EmbedBuilder;
 
@@ -40,10 +38,8 @@ public class GexCommands {
         String memoryBar = "";
         final int free = (int)(usedMemGB / (totalMemGB / 12));
         final int left = 12 - free;
-        for(int i = 0; i < free; i++)
-            memoryBar += "\u2B1C";
-        for(int i = 0; i < left; i++)
-            memoryBar += "\u2B1B";
+        for(int i = 0; i < free; i++) memoryBar += "\u2B1C";
+        for(int i = 0; i < left; i++) memoryBar += "\u2B1B";
 
         // Builds stats embed page.
         embed
@@ -81,10 +77,10 @@ public class GexCommands {
             .setColor(Color.GREEN)
         ;
 
-        if (GexGPT.replyQueue.size() == 0) { embed.addField("", "There are no prompts for me to answer!"); }
+        if (GexGPT.replyQueue.isEmpty()) { embed.addField("", "There are no prompts for me to answer!"); }
         else {
             String indexes = "";
-            int num = (GexGPT.replyQueue.size() < GexGPT.MAX_REPLY_PRINT)
+            final int num = (GexGPT.replyQueue.size() < GexGPT.MAX_REPLY_PRINT)
                     ? GexGPT.replyQueue.size()
                     : GexGPT.MAX_REPLY_PRINT;
             for (int i = 0; i < num; i++)
@@ -99,28 +95,24 @@ public class GexCommands {
     }
 
     public static String model (final String command, final String msg) {
-        String temp = GexBot.convertModelName(msg, true);
+        String temp = GexBot.convertModelName(msg, true), print;
         if (temp.equals("")) {
-            System.out.printf("%n[GexCommands] AI chat model could not be changed to \"%s\".%n", msg);
-            return "AI chat model could not be changed to "+msg+"!";
+            print = "AI chat model could not be changed to";
         } else {
             GexBot.AI_MODEL = temp;
             GexGPT.loadModel();
-            System.out.printf("%n[GexCommands] AI chat model successfully changed to \"%s\".%n", msg);
-            return "AI chat model successfully changed to "+msg+"!";
+            print = "AI chat model successfully changed to";
         }
+        System.out.printf("%n[GexCommands] %s \"%s\"!%n", print, msg);
+        return print+"\""+msg+"\"!";
     }
 
     public static String quip () {
-        String sentence, name;
-        int splice, random;
+        int random = r.nextInt(GexBot.sentenceArr.size());
+        final String sentence = GexBot.sentenceArr.get(random);
+        random = r.nextInt(GexBot.nameArr.size());
 
-        random = r.nextInt(GexBot.sentenceFileArr.size());
-        sentence = GexBot.sentenceFileArr.get(random);
-        random = r.nextInt(GexBot.nameFileArr.size());
-        name = GexBot.nameFileArr.get(random);
-
-        return sentence.replaceAll("_", name);
+        return sentence.replaceAll("_", GexBot.nameArr.get(random));
     }
 
     public static String time () {
@@ -129,19 +121,20 @@ public class GexCommands {
 
     public static String reply () {
         countGex++;
-        return GexBot.mentionFileArr.get(r.nextInt(GexBot.mentionFileArr.size()));
+        final int random = r.nextInt(GexBot.mentionArr.size());
+        return GexBot.mentionArr.get(random);
     }
 
     public static String context (final String userID, final String threadChannel) {
         System.out.printf("%n[GexCommands] Request received to clear AI context from user %s.%n", userID);
         waitForQueue();
         final boolean isThread = (threadChannel.equals("Optional.empty"));
-        String user = isThread ? userID : threadChannel;
+        final String user = isThread ? userID : threadChannel;
 
         GexGPT.clearContext(user);
         final boolean exists = GexGPT.users.containsKey(user);
         return (exists ? "Could not remove context for" : "Successfully removed context for ")
-        +(isThread ? "<@"+user+">!" : "thread "user+".");
+                +(isThread ? "<@"+user+">!" : "thread "+user+".");
     }
 
     public static String temp (final String msg) {

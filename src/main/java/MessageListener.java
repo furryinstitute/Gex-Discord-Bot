@@ -1,7 +1,7 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.3
+ * @version 0.6.3a
  */
 
 import org.javacord.api.listener.message.MessageCreateListener;
@@ -11,58 +11,53 @@ import org.javacord.api.event.message.MessageCreateEvent;
 
 public class MessageListener implements MessageCreateListener {
     
-    final String  selfPing = String.format("<@%s>", GexBot.USERID); 
-    final static long firstTime = System.currentTimeMillis();
+   // Class variables
+    final String selfPing = String.format("<@%s>", GexBot.USERID); 
+    static final long firstTime = System.currentTimeMillis();
     long currentTimeMsg, lastTimeMsg = 0;
     int chatCount = 0;
     int chatCountThreshold = GexBot.CHAT_COUNT_THRESHOLD;
-    Thread thread;
 
     @Override
     public void onMessageCreate(final MessageCreateEvent event) {
         final MessageAuthor msgAuthor =  event.getMessageAuthor();
         if (msgAuthor.isBotUser()) return;
 
+        // Variables derived from where message was received
         final TextChannel channel = event.getChannel();
         final String threadChannel = channel.asServerThreadChannel().toString();
         final boolean isAdmin = msgAuthor.getDisplayName().equals(GexBot.ADMIN_USER);
         final String userID = msgAuthor.getIdAsString();
 
-        String msg = event.getMessageContent();
-        String msgCaps = msg.toUpperCase();
+        // Parses message
+        String msg = event.getMessageContent(), msgCaps = msg.toUpperCase();
 
         String command = !msg.contains(" ") ? msgCaps : msgCaps.substring(0, msgCaps.indexOf(" "));
         msg = !msg.contains(" ") ? msg : msg.substring(msg.indexOf(" ")+1);
 
+        // Runs when command prefix is first char in message
         if (command.startsWith(GexBot.PREFIX)) {
             command = command.substring(1);
             switch (command) {
             case "TIME" :
-                channel.sendMessage(GexCommands.time());
-                break;
+                channel.sendMessage(GexCommands.time()); break;
             case "GEX" :
-                channel.sendMessage(GexCommands.quip());
-                break;
+                channel.sendMessage(GexCommands.quip()); break;
             case "STATUS" :
-                if(isAdmin)
-                    channel.sendMessage(GexCommands.status(msg));
-                break;
+                if (isAdmin) channel.sendMessage(GexCommands.status(msg)); break;
             case "QUEUE" :
-                channel.sendMessage(GexCommands.queue());
-                break;
+                channel.sendMessage(GexCommands.queue()); break;
             case "CONTEXT" :
-                channel.sendMessage(GexCommands.context(userID, threadChannel));
-                break;
+                channel.sendMessage(GexCommands.context(userID, threadChannel)); break;
             case "TEMP" :
-                channel.sendMessage(GexCommands.temp(msgCaps.substring(msgCaps.indexOf(" ")+1)));
-                break;
+                channel.sendMessage(GexCommands.temp(msgCaps.substring(msgCaps.indexOf(" ")+1))); break;
             case "PREFIX" :
-                if (isAdmin)
-                    GexCommands.prefix(msg);
-                break;
+                if (isAdmin) GexCommands.prefix(msg); break;
             case "MODEL" :
                 if (isAdmin && !(GexBot.PREFIX+command).equals(msgCaps))
-                    channel.sendMessage(GexCommands.model(command, msgCaps.substring(msgCaps.indexOf(" ")+1)));
+                    channel.sendMessage(GexCommands.model(
+                            command, msgCaps.substring(msgCaps.indexOf(" ")+1)
+                    ));
                 else
                     channel.sendMessage(GexCommands.model());
                 break;
@@ -80,29 +75,28 @@ public class MessageListener implements MessageCreateListener {
                     channel.sendMessage("I always come back.");
                     GexCommands.restart();
                 }
+                break;
             }
         }
         else {
+            // Run when Gex is pinged
             if (command.equals(selfPing)) {
                 channel.type();
                 final boolean isThread = !threadChannel.equals("Optional.empty");
                 final String key = isThread ? threadChannel : userID;
                 final boolean contains = GexGPT.users.containsKey(key);
 
-                final String[] empty = {"", ""};
-                final String[] item = contains ? GexGPT.users.get(key) : empty;
-                if (!contains) {
-                    System.out.printf("%n[MessageListener] Adding user %s to context map.%n", key);
-                }
+                final String[] empty = {"", ""}, item = contains ? GexGPT.users.get(key) : empty;
+                if (!contains) System.out.printf("%n[MessageListener] Adding user %s to context map.%n", key);
                 GexGPT.users.put(key, item);
 
                 GexGPT.replyQueue.add(event);
                 if (GexGPT.replyQueue.size() == 1) {
                     System.out.printf("%n[MessageListener] Starting new GexGPT thread.%n");
-                    thread = new Thread(new GexGPT());
-                    thread.start();
+                    new Thread(new GexGPT()).start();
                 }
             }
+            // Run when key word is found
             else if (msgCaps.contains("TIME")) {
                 channel.sendMessage("*It's tail time!*");
                 event.addReactionToMessage("GexSmirk:1154237747544997930");
@@ -113,6 +107,8 @@ public class MessageListener implements MessageCreateListener {
             else if (msgCaps.contains("CRAZY")) {
                 channel.sendMessage("Crazy? I was crazy once. They locked me in a room. A rubber room. A rubber room with rats. Rats make me crazy.");
             }
+            // Run when nothing else does; calculates the
+            // time between messages and sends quips
             else {
                 lastTimeMsg = currentTimeMsg;
                 currentTimeMsg = System.currentTimeMillis();
@@ -120,7 +116,7 @@ public class MessageListener implements MessageCreateListener {
                     chatCount++;
                     if (chatCount >= chatCountThreshold) {
                         chatCount = 0;
-                        chatCountThreshold *= 1.5;
+                        chatCountThreshold *= 1.75;
                         channel.sendMessage(GexCommands.quip());
                     }
                 } else {

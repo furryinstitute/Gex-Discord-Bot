@@ -1,45 +1,52 @@
 /*
  * @author furryinstitute, BurntBread007
  * @repo GexBot for Discord
- * @version 0.6.3
+ * @version 0.6.3a
  */
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Iterator;
+import java.util.LinkedList;
 import org.javacord.api.event.message.MessageCreateEvent;
 import com.hexadevlabs.gpt4all.LLModel;
 import com.hexadevlabs.gpt4all.LLModel.ChatCompletionResponse;
 
 public class GexGPT implements Runnable {
+   // Class variables
     private static LLModel model;
     private static LLModel.GenerationConfig config;
     private static ChatCompletionResponse test;
-    final static int MAX_REPLY_PRINT = 5;
-    final static HashMap<String, String[]> users = new HashMap<String, String[]>();
-    final static ArrayList<MessageCreateEvent> replyQueue = new ArrayList<MessageCreateEvent>();
+    static final int MAX_REPLY_PRINT = 5;
+    static final HashMap<String, String[]> users = new HashMap<String, String[]>();
+    static final Queue<MessageCreateEvent> replyQueue = new LinkedList<MessageCreateEvent>();
 
+    // Runs from MessageListener class when replyQueue has items
     public void run () {
         System.out.printf("%n[GexGPT] AI reply queue initialized.%n%n");
-        while (replyQueue.size() > 0) {
-            final MessageCreateEvent event = replyQueue.get(0);
-            final String message = event.getMessageContent();
-            final String userID = event.getMessageAuthor().getIdAsString();
-            final String username = event.getMessageAuthor().getDisplayName();
+        while (!replyQueue.isEmpty()) {
+            // Variables derived from current event object
+            final MessageCreateEvent     event = replyQueue.poll();
+            final String message =       event.getMessageContent();
+            final String userID =        event.getMessageAuthor().getIdAsString();
+            final String username =      event.getMessageAuthor().getDisplayName();
             final String threadChannel = event.getChannel().asServerThreadChannel().toString();
             final boolean isThread = users.containsKey(threadChannel);
+
             String result = String.format("<@%s>", userID);
-            result += generateReply((isThread ? threadChannel : userID), username, message.substring(message.indexOf(">")+1));
+            result += generateReply((isThread ? threadChannel : userID), 
+                    username, message.substring(message.indexOf(">")+1));
 
             event.getChannel().sendMessage(result);
-            replyQueue.remove(0);
         }
         System.out.printf("%n[GexGPT] AI reply queue finished.%n%n");
         return;
     }
 
+    // Loads AI chat model into model variable
     public static void loadModel () {
         System.out.printf("%n[GexGPT] Attempting to load AI model...%n%n");
         model = new LLModel(Paths.get(GexBot.AI_MODEL_PATH+GexBot.AI_MODEL));
@@ -53,9 +60,10 @@ public class GexGPT implements Runnable {
 
     public static String generateReply (final String user, final String username, final String prompt) {
         try {
-            String userContext = users.get(user)[0];
-            String aiContext = users.get(user)[1];
+            final String userContext = users.get(user)[0];
+            final String aiContext = users.get(user)[1];
 
+            // Generates AI response
             test = model.chatCompletion(
                 List.of(Map.of("role", "system", "content", GexBot.AI_ROLE),
                         Map.of("role", "system", "content", "The user's name is "+username+". "),
@@ -63,34 +71,36 @@ public class GexGPT implements Runnable {
                         Map.of("role", "assistant", "content", aiContext),
                         Map.of("role", "user", "content", prompt)), config, true, true);
 
-            userContext = prompt;
-            aiContext = test.choices.toString();
-            aiContext = aiContext.substring(26, aiContext.length()-2);
+            // Organizes results
+            final String newUser = prompt;
+            String newAi = test.choices.toString();
+            newAi = newAi.substring(26, newAi.length()-2);
             
-            final String[] item = {userContext, aiContext};
-            users.put(user, item);
+            final String[] item = {newUser, newAi};
+            users.put(user, item); // Updates user item with new context texts
 
             GexCommands.countAIReply++;
             return item[1];
         } catch (Exception e) {
-            return "Sorry, but I don't know how to answer your statement. I'm just a goofy and silly lizard that likes to reference celebrities from the 1990s.";
+            return "Sorry, but I don't know how to answer your statement.";
         }
     }
 
+    // Prints upcoming prompts to respond to
     public static String printPrompts () {
-        if (replyQueue.size() == 0) return "";
+        final int length = (replyQueue.size() < MAX_REPLY_PRINT) ? replyQueue.size() : MAX_REPLY_PRINT;
+        final Iterator<MessageCreateEvent> iterate = replyQueue.iterator();
         String result = "";
-        int length = (replyQueue.size() < MAX_REPLY_PRINT) ? replyQueue.size() : MAX_REPLY_PRINT;
-        for (int i = 0; i < length; i++) {
-            String message = replyQueue.get(i).getMessageContent();
+        for (int i = 0; (i < length) && iterate.hasNext(); i++) {
+            String message = iterate.next().getMessageContent();
             message = message.substring(message.indexOf(">")+1);
 
-            int endBound = message.length() > 45 ? 45 : message.length();
-            result += message.substring(0, endBound)+"\n";
+            result += String.format("%.45s%n", message);
         }
         return result;
     }
 
+    // Removes context array for a given user/thread
     public static void clearContext (final String user) {
         if (users.containsKey(user)) {
             users.remove(user);
